@@ -21,6 +21,7 @@
 - 正式重建完成：`/usr/bin/time -p` 实测 `real 34.80`，成功生成正式 `dashboard/index.html`。
 - 页面检索通过：`今日 Dashboard 更新日期：2026-06-21`、`行情/回测序列最新日期：2026-06-18`、`最后回测调仓日：2026-06-17`、`预计下次回测调仓：2026-06-26`、`距下次还差交易日：6`、`最后模拟盘执行日：2026-06-18`、`已落账模拟成交：3`。
 - `./.venv/bin/python scripts/run_local_qa_checks.py` 通过，输出 `/tmp/tw_quant_local_qa_summary.md` 与 `/tmp/tw_quant_local_qa_summary.json`；关键数字仍为 `AI 供应链权重 34.46%`、`风险贡献 49.89%`、`风险-权重差 +15.43%`、`trade_count=3`。
+- 已将提交 `7f6f47e` 推送到 `dashboard` 与 `origin`；Render 公网首页正文第 4 轮轮询切到 `今日 Dashboard 更新日期：2026-06-21`、`行情/回测序列最新日期：2026-06-18`，且 `signal_sell_count=0`。
 
 ### Files Changed
 
