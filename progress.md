@@ -1,5 +1,32 @@
 # Loop Engineering Progress
 
+## 2026-06-22 策略监控列宽比例
+
+### Session Goal
+
+回应用户截图反馈：“策略监控与建议单”的表格间隔比例还需要调整。
+
+### Actions
+
+- 已最小修改 `src/risk_dashboard.py`：为 `signal-table` 加入 `colgroup` 和固定列宽比例，避免浏览器自动分配导致 `触发原因` 被推得过远。
+- 当前列宽比例为：动作 `9%`、代码 `7%`、名称 `18%`、监控价 `9%`、成本价 `9%`、连续天数 `7%`、建仓后报酬 `10%`、建议股数 `8%`、触发原因 `23%`。
+- 已把短数字列置中，保留名称和触发原因靠左；未改变策略规则、建议单、模拟盘落账逻辑。
+- 已用正式 public-close 日更同口径重建 `dashboard/index.html`；本轮带 `--execute-simulated-trades`，模拟盘保持幂等，新增模拟成交 `0` 笔。
+
+### Verification Log
+
+- `./.venv/bin/python -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py` 通过。
+- `./.venv/bin/python scripts/run_local_qa_checks.py` 通过；关键数字仍为 `AI 供应链权重 34.38%`、`风险贡献 49.90%`、`风险-权重差 +15.52%`、`trade_count=3`。
+- 本地浏览器验证 `#trade-signals`：实际列宽比例为 `9 / 7 / 18 / 9 / 9 / 7 / 10 / 8 / 23`，`tableFits=true`、`sectionClearOfSide=true`、页面无水平溢出。
+
+### Files Changed
+
+- `src/risk_dashboard.py`
+- `dashboard/index.html`
+- `data/model_portfolio_market_2026-06-22.csv`
+- `data/model_portfolio_market_2026-06-22_summary.txt`
+- `progress.md`
+
 ## 2026-06-22 策略监控原因短标签
 
 ### Session Goal

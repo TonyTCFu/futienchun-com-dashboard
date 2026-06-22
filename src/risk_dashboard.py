@@ -3503,6 +3503,17 @@ def render_dashboard(
       <div class="analysis-note"><b>訊號口徑：</b>「觀察」代表未進入本輪待處理清單；「建議買入 / 建議賣出」只代表本地模擬盤待確認，不會送到券商。若標的顯示「本日模擬調倉已落帳」，表示同一交易日已有本地 CSV 紀錄，系統會避免重複列為待確認清單。</div>
       <div class="analysis-note"><b>本轮调仓解释：</b>{html.escape(trade_reason_summary)} {html.escape(trade_reason_boundary)}</div>
       <table class="metric-table signal-table">
+        <colgroup>
+          <col class="signal-col-action">
+          <col class="signal-col-code">
+          <col class="signal-col-name">
+          <col class="signal-col-price">
+          <col class="signal-col-cost">
+          <col class="signal-col-days">
+          <col class="signal-col-return">
+          <col class="signal-col-shares">
+          <col class="signal-col-reason">
+        </colgroup>
         <thead><tr><th>动作</th><th>代码</th><th>名称</th><th>监控价</th><th>成本价</th><th>连续天数</th><th>建仓后报酬</th><th>建议股数</th><th>触发原因</th></tr></thead>
         <tbody>{signal_rows}</tbody>
       </table>
@@ -4099,8 +4110,25 @@ def render_dashboard(
     }}
     .compact-table th, .compact-table td {{ padding: 8px 7px; }}
     .signal-table th, .signal-table td {{ padding: 8px 7px; }}
+    .signal-table {{ table-layout: fixed; }}
+    .signal-col-action {{ width: 9%; }}
+    .signal-col-code {{ width: 7%; }}
+    .signal-col-name {{ width: 18%; }}
+    .signal-col-price {{ width: 9%; }}
+    .signal-col-cost {{ width: 9%; }}
+    .signal-col-days {{ width: 7%; }}
+    .signal-col-return {{ width: 10%; }}
+    .signal-col-shares {{ width: 8%; }}
+    .signal-col-reason {{ width: 23%; }}
     .signal-table .name-cell {{ min-width: 92px; }}
-    .signal-table td:last-child, .signal-table th:last-child {{ width: 34%; min-width: 220px; white-space: normal; }}
+    .signal-table th:nth-child(1), .signal-table td:nth-child(1),
+    .signal-table th:nth-child(2), .signal-table td:nth-child(2),
+    .signal-table th:nth-child(4), .signal-table td:nth-child(4),
+    .signal-table th:nth-child(5), .signal-table td:nth-child(5),
+    .signal-table th:nth-child(6), .signal-table td:nth-child(6),
+    .signal-table th:nth-child(7), .signal-table td:nth-child(7),
+    .signal-table th:nth-child(8), .signal-table td:nth-child(8) {{ text-align: center; }}
+    .signal-table td:last-child, .signal-table th:last-child {{ white-space: nowrap; }}
     .name-cell {{ min-width: 112px; }}
     .asset-name {{ display: inline-block; white-space: nowrap; }}
     .footer-note {{ margin-top: 12px; font-size: 12px; color: var(--muted); }}
