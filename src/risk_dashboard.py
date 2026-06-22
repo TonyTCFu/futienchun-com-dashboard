@@ -3462,11 +3462,7 @@ def render_dashboard(
             (
                 f"<tr class=\"signal-{html.escape(signal.status)}\" data-trade-id=\"{html.escape(signal.trade_id)}\"><td><span class=\"signal-pill {html.escape(signal.status)}\">{html.escape(signal.action)}</span></td>"
                 f"<td>{html.escape(signal.symbol)}</td><td class=\"name-cell\"><span class=\"asset-name\">{html.escape(signal.name)}</span></td><td>{signal.latest_price:.2f}</td>"
-                f"<td>{format_optional_price(signal.cost_price)}</td><td>{format_optional_price(signal.ma20)}</td><td>{format_optional_price(signal.ma60)}</td>"
-                f"<td>{'' if signal.rsi14 is None else f'{signal.rsi14:.1f}'}</td>"
-                f"<td>{'' if signal.volume_ratio is None else f'{signal.volume_ratio:.2f}x'}</td>"
-                f"<td>{'' if signal.average_amount20 is None else format_twd(signal.average_amount20)}</td>"
-                f"<td>{signal.factor_score:+.2f}</td><td>{signal.persistence_days}</td>"
+                f"<td>{format_optional_price(signal.cost_price)}</td><td>{signal.persistence_days}</td>"
                 f"<td>{'' if signal.return_since_entry is None else format_percent(signal.return_since_entry, signed=True)}</td>"
                 f"<td>{'' if signal.proposed_shares is None else f'{signal.proposed_shares:,}'}</td><td>{html.escape(signal.reason)}</td></tr>"
             )
@@ -3486,11 +3482,11 @@ def render_dashboard(
         </div>
         <span class="status-pill">{html.escape(signal_status_text)}</span>
       </div>
-      <p>{signal_summary} 规则使用 20 日均线、60 日均线、14 日 RSI、成交量比、20 日平均成交金额、建仓成本与多因子分数；只生成手工建议，不会自动下单。</p>
+      <p>{signal_summary} 表格只保留决策复核需要的核心栏位；趋势、RSI、量能和多因子分数仍在规则内部计算，只生成手工建议，不会自动下单。</p>
       <div class="analysis-note"><b>訊號口徑：</b>「觀察」代表未進入本輪待處理清單；「建議買入 / 建議賣出」只代表本地模擬盤待確認，不會送到券商。若標的顯示「本日模擬調倉已落帳」，表示同一交易日已有本地 CSV 紀錄，系統會避免重複列為待確認清單。</div>
       <div class="analysis-note"><b>本轮调仓解释：</b>{html.escape(trade_reason_summary)} {html.escape(trade_reason_boundary)}</div>
-      <table class="metric-table">
-        <thead><tr><th>动作</th><th>代码</th><th>名称</th><th>监控价</th><th>成本价</th><th>MA20</th><th>MA60</th><th>RSI14</th><th>量比</th><th>20 日均额</th><th>因子分</th><th>连续天数</th><th>建仓后报酬</th><th>建议股数</th><th>触发原因</th></tr></thead>
+      <table class="metric-table signal-table">
+        <thead><tr><th>动作</th><th>代码</th><th>名称</th><th>监控价</th><th>成本价</th><th>连续天数</th><th>建仓后报酬</th><th>建议股数</th><th>触发原因</th></tr></thead>
         <tbody>{signal_rows}</tbody>
       </table>
       <p class="footer-note">买入触发：回落约 3%、长期趋势仍正向、RSI 未过热、量能未明显萎缩，并连续观察至少 2 天。卖出触发：亏损约 6% 或趋势转弱，或获利约 8% 且 RSI 过热，并连续观察至少 2 天。阈值是 MVP 起点，后续可用回测再校准。</p>
@@ -3780,10 +3776,10 @@ def render_dashboard(
     a {{ color: inherit; text-decoration: none; }}
     .app-shell {{
       display: grid;
-      grid-template-columns: 78px minmax(0, 1fr) 330px;
-      gap: 18px;
+      grid-template-columns: 72px minmax(0, 1fr) 280px;
+      gap: 12px;
       min-height: 100vh;
-      padding: 18px;
+      padding: 14px;
     }}
     .left-nav {{
       position: sticky;
@@ -4085,6 +4081,9 @@ def render_dashboard(
       grid-template-columns: 1fr;
     }}
     .compact-table th, .compact-table td {{ padding: 8px 7px; }}
+    .signal-table th, .signal-table td {{ padding: 8px 7px; }}
+    .signal-table .name-cell {{ min-width: 92px; }}
+    .signal-table td:last-child, .signal-table th:last-child {{ width: 34%; min-width: 220px; white-space: normal; }}
     .name-cell {{ min-width: 112px; }}
     .asset-name {{ display: inline-block; white-space: nowrap; }}
     .footer-note {{ margin-top: 12px; font-size: 12px; color: var(--muted); }}

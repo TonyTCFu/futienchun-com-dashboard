@@ -1,10 +1,43 @@
 # Loop Engineering Progress
 
+## 2026-06-22 策略监控表格修正
+
+### Session Goal
+
+回应用户截图反馈：“策略监控与建议单”的表格右半部分在当前桌面视口被挤到可视区域外；同步缩小左右栏比例，并拿掉表内不必要的技术因素列。
+
+### Actions
+
+- 已最小修改 `src/risk_dashboard.py`：策略监控表从 15 列瘦身为 9 列，保留 `动作 / 代码 / 名称 / 监控价 / 成本价 / 连续天数 / 建仓后报酬 / 建议股数 / 触发原因`。
+- 已从策略监控表头移除 `MA20 / MA60 / RSI14 / 量比 / 20 日均额 / 因子分`；这些因素仍保留在规则内部计算，只是不再占用首屏表格宽度。
+- 已把整体三栏布局从 `78px / main / 330px` 调整为 `72px / main / 280px`，并缩小外层 gap 与 padding，让主内容表格取得更多横向空间。
+- 已用正式 public-close 日更同口径重建 `dashboard/index.html`；本轮带 `--execute-simulated-trades`，但模拟盘保持幂等，新增模拟成交 `0` 笔。
+
+### Verification Log
+
+- `./.venv/bin/python -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py` 通过。
+- `./.venv/bin/python scripts/run_local_qa_checks.py` 通过；关键数字仍为 `AI 供应链权重 34.38%`、`风险贡献 49.90%`、`风险-权重差 +15.52%`、`trade_count=3`。
+- 正式重建命令耗时 `real 36.72`，并保留 `public-close` 日更日志；`SIMULATED_TRADES` 显示新增模拟成交 `0` 笔。
+- 本地浏览器验证 `http://127.0.0.1:8765/dashboard/index.html#trade-signals`：策略监控表头只剩 9 列，旧技术列无命中；表格 `right=1395`、主区块 `right=1412`，右侧栏 `x=1424`，确认表格没有被右侧栏裁切。
+- 页面检索确认仍显示 `今日 Dashboard 更新日期：2026-06-22`、`行情/回测序列最新日期：2026-06-22`、`已按每日 13:45 更新`。
+
+### Files Changed
+
+- `src/risk_dashboard.py`
+- `dashboard/index.html`
+- `data/model_portfolio_market_2026-06-22.csv`
+- `data/model_portfolio_market_2026-06-22_summary.txt`
+- `progress.md`
+
+### Next Loop Recommendation
+
+- 若继续调整桌面表格，可优先做列宽与金额格式微调；若要系统性处理手机端宽表，建议另开一轮把所有宽表统一包进可横向滚动容器。
+
 ## 2026-06-22
 
 ### Session Goal
 
-回应用户要求“现在就更新 Dashboard”，在 15:20 收盘自动化排程之外即时补跑一次完整 public-close 日更，并推送公网。
+回应用户要求“现在就更新 Dashboard”，在 13:45 收盘自动化排程之外即时补跑一次完整 public-close 日更，并推送公网。
 
 ### Actions
 
@@ -37,7 +70,7 @@
 
 ### Next Loop Recommendation
 
-- 每日固定排程已改为 `15:20`；若用户当天临时要求“现在更新”，可直接补跑完整 public-close 日更，但需同步 QA 基线与 Obsidian 摘要中随重建漂移的研究数字。
+- 每日固定排程已改为 `13:45`；若用户当天临时要求“现在更新”，可直接补跑完整 public-close 日更，但需同步 QA 基线与 Obsidian 摘要中随重建漂移的研究数字。
 
 ## 2026-06-22 早前摘要区更新
 
