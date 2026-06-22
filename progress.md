@@ -23,6 +23,7 @@
 - 页面检索通过：`今日市场与更新摘要`、`加权指数 2026-06-22 收 47,741.51`、`行情/回测序列最新日期：2026-06-22`、`模型盘市值日：2026-06-22`、`待确认调仓：0`、`预计下次回测调仓：2026-06-26`。
 - `./.venv/bin/python scripts/run_local_qa_checks.py` 通过，输出 `/tmp/tw_quant_local_qa_summary.md` 与 `/tmp/tw_quant_local_qa_summary.json`；关键数字仍为 `AI 供应链权重 34.46%`、`风险贡献 49.89%`、`风险-权重差 +15.43%`、`trade_count=3`。
 - iCloud Obsidian `台股量化基金.md` 已同步 Dashboard 研究摘要中随 6/22 行情微调的策略结构结论，确保同步检查继续通过。
+- 已将提交 `e40ce2f` 推送到 `dashboard` 与 `origin`；Render 公网首页正文已验证 `今日 Dashboard 更新日期：2026-06-22`、`行情/回测序列最新日期：2026-06-22`，并可检索到新区块 `今日市场与更新摘要` 与 `加权指数 2026-06-22 收 47,741.51`；公网 `signal_sell_count=0`。
 
 ### Files Changed
 
