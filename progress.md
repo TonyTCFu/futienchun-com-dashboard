@@ -4,6 +4,45 @@
 
 ### Session Goal
 
+回应用户要求“现在就更新 Dashboard”，在 15:20 收盘自动化排程之外即时补跑一次完整 public-close 日更，并推送公网。
+
+### Actions
+
+- 已按项目边界读取自动化 memory、`AGENTS.md`、`progress.md`、`findings.md`、`.codex/PROJECT_CONTEXT.md`、`README.md` 和台股/Shioaji skill；未读取 `.env`、`.shioaji.local.env`、API key 或 token，未调用券商下单。
+- 已执行完整收盘重建：`--market-source public-close --market-mode close --execute-simulated-trades`、`multi-factor-shrink`、`ai_tilt moderate`；重建耗时 `real 33.69`。
+- Dashboard 已确认仍为 `2026-06-22` 收盘定稿：今日更新日期 `2026-06-22`，行情/回测序列最新日期 `2026-06-22`，模型盘市值日 `2026-06-22`。
+- 本轮 `--execute-simulated-trades` 保持幂等：模拟成交 CSV 仍为 3 笔已执行卖出，未新增重复成交；`2317` 剩 `15` 股、`2881` 剩 `151` 股、`2882` 剩 `156` 股。
+- 研究摘要随正式重建微调：AI 供应链权重 `34.38%`、风险贡献 `49.90%`、风险-权重差 `+15.52%`；已同步 QA 基线与 iCloud Obsidian `台股量化基金.md`。
+
+### Verification Log
+
+- `./.venv/bin/python -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py scripts/validate_research_brief_sync.py scripts/validate_research_brief_metrics.py` 通过。
+- 页面检索通过：`今日市场与更新摘要`、`加权指数 2026-06-22 收 47,741.51`、`今日行情：收盘定稿`、`目前更新情况`、`本日模拟成交 3 笔`。
+- 模拟盘 CSV 检查通过：`data/simulated_trades_2026-06-22.csv` 共 3 笔，分别为 `2317` 卖出 `5` 股、`2881` 卖出 `38` 股、`2882` 卖出 `39` 股；状态均为 `executed`。
+
+### Files Changed
+
+- `dashboard/index.html`
+- `data/model_portfolio_latest.csv`
+- `data/model_portfolio_2026-06-03.csv`
+- `data/model_portfolio_market_2026-06-22.csv`
+- `data/model_portfolio_market_2026-06-22_summary.txt`
+- `scripts/validate_research_brief_sync.py`
+- `scripts/validate_research_brief_metrics.py`
+- `scripts/run_local_qa_checks.py`
+- `progress.md`
+- `findings.md`
+- `.codex/PROJECT_CONTEXT.md`
+- iCloud Obsidian `台股量化基金.md`
+
+### Next Loop Recommendation
+
+- 每日固定排程已改为 `15:20`；若用户当天临时要求“现在更新”，可直接补跑完整 public-close 日更，但需同步 QA 基线与 Obsidian 摘要中随重建漂移的研究数字。
+
+## 2026-06-22 早前摘要区更新
+
+### Session Goal
+
 回答“台湾股市今天情况如何”，并把 Dashboard 加上当前更新摘要：今天市场、已做事项、目前状态与短期下一步。
 
 ### Actions
