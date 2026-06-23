@@ -1,5 +1,12 @@
 # Loop Engineering Findings
 
+## 2026-06-23 二次补跑推进正式行情
+
+- 早一轮拿不到 `2026-06-23` 不是模型坏掉，而是 TWSE public-close 当时尚未稳定发布完整月资料；后续复查 15 檔资产的 `STOCK_DAY` 回包，最后日期均已到 `115/06/23`。
+- 二次补跑正式生成 `data/model_portfolio_market_2026-06-23.csv` 与 summary；`quote_count=15`、`missing_count=0`，行情/回测序列最新日期已推进到 `2026-06-23`。
+- Dashboard 继续保持 Codex 版本与公网链接 `https://futienchun-com-dashboard.onrender.com/`；本轮只推 `dashboard` 远端，不触碰其他智能体维护的 `origin` 远端。
+- 今日收盘市值档显示当前持仓市值 `NT$350,664.96`、未实现盈亏 `NT$13,042.90`、盈亏率 `+3.8632%`。
+
 ## 2026-06-23 公网 Dashboard 今日刷新
 
 - 本轮按正式日更口径执行 `public-close + market-mode close + --execute-simulated-trades`，重建耗时 `real 72.19`。

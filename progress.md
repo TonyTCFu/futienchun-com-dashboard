@@ -1,5 +1,40 @@
 # Loop Engineering Progress
 
+## 2026-06-23 二次补跑推进收盘行情
+
+### Session Goal
+
+回应用户要求“立刻补跑一次 Dashboard 更新，把公网行情日期推进到 2026-06-23”，只更新 `https://futienchun-com-dashboard.onrender.com/` 对应的 Dashboard 远端，不触碰其他智能体维护的远端。
+
+### Actions
+
+- 已确认 TWSE `STOCK_DAY` 公开接口现在 15 檔资产均可读到 `115/06/23`，因此补跑正式 `public-close + market-mode close + --execute-simulated-trades`。
+- 已生成 `data/model_portfolio_market_2026-06-23.csv` 与 `data/model_portfolio_market_2026-06-23_summary.txt`；`quote_count=15`、`missing_count=0`。
+- Dashboard 已推进为 `今日 Dashboard 更新日期：2026-06-23`、`行情/回测序列最新日期：2026-06-23`，并保留 `<title>台灣股市Codex</title>`。
+- 本轮只准备推送 `dashboard` 远端；`origin` 远端保持外部智能体版本，不再触碰。
+
+### Verification Log
+
+- `./.venv/bin/python -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py scripts/validate_research_brief_sync.py scripts/validate_research_brief_metrics.py` 通过。
+- 正式补跑完成：`/usr/bin/time -p` 实测 `real 64.93`，成功生成正式 `dashboard/index.html`。
+- 页面检索通过：`今日 Dashboard 更新日期：2026-06-23`、`行情/回测序列最新日期：2026-06-23`、`已用公开收盘价重建每日行情：data/model_portfolio_market_2026-06-23.csv`。
+- iCloud Obsidian `台股量化基金.md` 已同步 Dashboard 当前研究摘要中的策略结构变化数字。
+
+### Files Changed
+
+- `dashboard/index.html`
+- `data/model_portfolio_2026-06-03.csv`
+- `data/model_portfolio_latest.csv`
+- `data/model_portfolio_market_2026-06-23.csv`
+- `data/model_portfolio_market_2026-06-23_summary.txt`
+- `data/simulated_positions_2026-06-23.csv`
+- `data/simulated_positions_latest.csv`
+- `data/simulated_trades_2026-06-23.csv`
+- `progress.md`
+- `findings.md`
+- `.codex/HANDOFF.md`
+- iCloud Obsidian `台股量化基金.md`
+
 ## 2026-06-23
 
 ### Session Goal
