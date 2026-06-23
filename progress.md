@@ -1,5 +1,42 @@
 # Loop Engineering Progress
 
+## 2026-06-23
+
+### Session Goal
+
+回应用户要求“更新一下公网今天 Dashboard 的内容”，按正式 public-close 日更口径重建本地 Dashboard、同步研究摘要 QA，并准备推送公网。
+
+### Actions
+
+- 已按项目边界读取 `AGENTS.md`、`.codex/HANDOFF.md`、`progress.md`、`findings.md`、`.codex/PROJECT_CONTEXT.md`、README 相关命令与台股/Shioaji skill；本轮未读取 `.env`、`.shioaji.local.env`、API key、token，未调用券商下单。
+- 已执行正式重建：`--market-source public-close --market-mode close --execute-simulated-trades`、`multi-factor-shrink`、`ai_tilt moderate`；重建耗时 `real 72.19`。
+- Dashboard 已刷新为 `今日 Dashboard 更新日期：2026-06-23`，但 TWSE 公开收盘资料本轮未前进，行情/回测序列最新日期与模型盘市值日仍为 `2026-06-22`；未生成 `data/model_portfolio_market_2026-06-23.csv`。
+- 今日市场摘要区显示 TWSE 加权指数公开资料暂不可用；本轮仍保留模型盘与行情序列状态，避免把未取得的指数资料包装成已确认事实。
+- 本地模拟盘保持幂等：最后模拟盘执行日仍为 `2026-06-22`，已落账模拟成交仍为 `3` 笔，未新增 `2026-06-23` 模拟成交。
+- 已同步 iCloud Obsidian `台股量化基金.md` 的 Dashboard 研究摘要，使本地 QA 恢复通过。
+
+### Verification Log
+
+- `./.venv/bin/python -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py scripts/validate_research_brief_sync.py scripts/validate_research_brief_metrics.py` 通过。
+- 正式重建完成：`/usr/bin/time -p` 实测 `real 72.19`，成功生成正式 `dashboard/index.html`。
+- 页面检索通过：`今日 Dashboard 更新日期：2026-06-23`、`行情/回测序列最新日期：2026-06-22`、`模型盘市值日：2026-06-22`、`待确认调仓：0`、`signal-pill sell=0`、`建议卖出=0`、`<title>台灣股市Codex</title>`。
+- `./.venv/bin/python scripts/run_local_qa_checks.py` 通过；关键数字为 `AI 供应链权重 34.38%`、`风险贡献 49.90%`、`风险-权重差 +15.52%`、`trade_count=3`。
+
+### Files Changed
+
+- `dashboard/index.html`
+- `data/model_portfolio_market_2026-06-22.csv`
+- `data/model_portfolio_market_2026-06-22_summary.txt`
+- `progress.md`
+- `findings.md`
+- `.codex/PROJECT_CONTEXT.md`
+- `.codex/HANDOFF.md`
+- iCloud Obsidian `台股量化基金.md`
+
+### Next Loop Recommendation
+
+- 若稍后 TWSE 2026-06-23 官方收盘资料稳定，应再跑一次同口径重建，确认行情/回测序列是否推进到 `2026-06-23`；若仍未前进，应继续明确回报“页面已刷新、正式行情未前进”。
+
 ## 2026-06-22 策略监控列宽比例
 
 ### Session Goal

@@ -1,5 +1,14 @@
 # Loop Engineering Findings
 
+## 2026-06-23 公网 Dashboard 今日刷新
+
+- 本轮按正式日更口径执行 `public-close + market-mode close + --execute-simulated-trades`，重建耗时 `real 72.19`。
+- Dashboard 已刷新为 `今日 Dashboard 更新日期：2026-06-23`，但正式行情/回测序列最新日期仍为 `2026-06-22`；这表示页面已刷新，TWSE public-close 本轮尚未提供可共同推进到 6/23 的正式资料。
+- 本轮未生成 `data/model_portfolio_market_2026-06-23.csv`；现有 `data/model_portfolio_market_2026-06-22.csv` 只是刷新了 `quote_time=2026-06-23T10:53:23`，15 檔仍全为 `ready`，市值、未实现盈亏不变。
+- 今日市场摘要区无法读取 TWSE 加权指数公开资料，因此 Dashboard 明确显示“TWSE 加权指数公开资料暂时无法读取”，而不是沿用昨日指数或假装 6/23 已有收盘指数。
+- 模拟盘保持幂等：最后模拟盘执行日仍为 `2026-06-22`，已落账模拟成交仍为 3 笔，未新增 6/23 模拟成交；策略监控继续 `signal-pill sell=0`、`建议卖出=0`。
+- 本地 QA 汇总通过；研究摘要关键数字保持 `AI 供应链权重 34.38%`、`风险贡献 49.90%`、`风险-权重差 +15.52%`、`trade_count=3`；iCloud Obsidian `台股量化基金.md` 已同步该摘要。
+
 ## 2026-06-22 即时补跑收盘日更
 
 - 用户要求不要等下一次 15:20 自动化，立即补跑 Dashboard；本轮按正式日更口径执行 `public-close + market-mode close + --execute-simulated-trades`，重建耗时 `real 33.69`。
