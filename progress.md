@@ -1,5 +1,43 @@
 # Loop Engineering Progress
 
+## 2026-06-24
+
+### Session Goal
+
+执行每日收盘自动化：按 `public-close + market-mode close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades` 口径重建 Dashboard，验证本地页面与模拟盘状态，并推送公网。
+
+### Actions
+
+- 已按要求读取 automation memory、`AGENTS.md`、`task_plan.md`、`findings.md`、`progress.md`、`.codex/PROJECT_CONTEXT.md` 与 `README.md`；本轮未读取 `.env`、`.shioaji.local.env`、API key、token，未调用券商下单。
+- 已执行正式重建，耗时 `real 35.97`；Dashboard 今日更新日期切到 `2026-06-24`，但公开收盘价共同序列仍停在 `2026-06-23`，未生成 `data/model_portfolio_market_2026-06-24.csv`。
+- 本轮 `DAILY_MARKET` 复用并刷新 `data/model_portfolio_market_2026-06-23.csv`，15 檔成功、缺失 0 檔；行情口径仍为收盘定稿。
+- 本轮 `--execute-simulated-trades` 新增模拟成交 `0` 笔；最后模拟盘执行日仍为 `2026-06-23`，已落账模拟成交 `3` 笔，其中卖出 `3` 笔。
+- 6/23 已落账持仓保持为：`2317` 剩 `11` 股、`2881` 剩 `120` 股、`2882` 剩 `124` 股；本轮无新增持仓变化。
+- 已同步 Dashboard 研究摘要漂移到 QA 基线与 iCloud Obsidian `台股量化基金.md`：`AI 供应链权重 34.38%`、`风险贡献 49.89%`、`风险-权重差 +15.51%`、`trade_count=3`。
+
+### Verification Log
+
+- `./.venv/bin/python -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py scripts/validate_research_brief_sync.py scripts/validate_research_brief_metrics.py` 通过。
+- 正式重建完成：`/usr/bin/time -p` 实测 `real 35.97`，成功生成正式 `dashboard/index.html`。
+- 页面解析通过：`今日 Dashboard 更新日期=2026-06-24`、`行情/回测序列最新日期=2026-06-23`、`最后回测调仓日=2026-06-17`、`预计下次回测调仓=2026-06-29`、`距下次还差交易日=4`、`最后模拟盘执行日=2026-06-23`、`已落账模拟成交=3`。
+- 策略监控检查通过：`signal-pill sell=0`、可见 `建议卖出=0`，没有已落账标的仍显示红色建议卖出。
+- `./.venv/bin/python scripts/run_local_qa_checks.py` 通过，输出 `/tmp/tw_quant_local_qa_summary.md` 与 `/tmp/tw_quant_local_qa_summary.json`。
+
+### Files Changed
+
+- `dashboard/index.html`
+- `data/model_portfolio_2026-06-03.csv`
+- `data/model_portfolio_latest.csv`
+- `data/model_portfolio_market_2026-06-23.csv`
+- `data/model_portfolio_market_2026-06-23_summary.txt`
+- `scripts/validate_research_brief_sync.py`
+- `scripts/validate_research_brief_metrics.py`
+- `scripts/run_local_qa_checks.py`
+- `progress.md`
+- `findings.md`
+- `.codex/PROJECT_CONTEXT.md`
+- iCloud Obsidian `台股量化基金.md`
+
 ## 2026-06-23 二次补跑推进收盘行情
 
 ### Session Goal
