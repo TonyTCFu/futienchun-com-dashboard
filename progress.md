@@ -13,7 +13,7 @@
 - Dashboard 今日更新日期切到 `2026-06-25`，公开收盘价共同序列推进到 `2026-06-24`；已生成 `data/model_portfolio_market_2026-06-24.csv` 与 summary，15 檔成功、缺失 0 檔。
 - 本轮 `--execute-simulated-trades` 新增模拟成交 `2` 笔，均为卖出：`2317` 卖出 `3` 股、`2881` 卖出 `24` 股；执行后 `2317` 剩 `8` 股、`2881` 剩 `96` 股、`2882` 维持 `124` 股。
 - 已同步 Dashboard 研究摘要漂移到 QA 基线与 iCloud Obsidian `台股量化基金.md`：`AI 供应链权重 33.00%`、`风险贡献 52.71%`、`风险-权重差 +19.71%`、`trade_count=2`。
-- 提交 `0d61b81` 已推送到 `dashboard` 远端；Render 首页正文第 2 轮已验证切到今日页面。`origin/main` 比本地多 12 个 Antigravity/300k TWD 相关提交且与本地日更文件大范围分叉，本轮正常 push 被拒绝，未强推。
+- 提交 `0d61b81` 已推送到 `dashboard` 远端；Render 首页正文第 2 轮已验证切到今日页面。`origin/main` 比本地多 12 个 Antigravity/300k TWD 相关提交且与本地日更文件大范围分叉，本轮正常 push 被拒绝，未强推。用户已确认这条 `origin` 分叉属于另一个智能体，后续日更默认与其分开，只推 `dashboard` 远端。
 
 ### Verification Log
 
