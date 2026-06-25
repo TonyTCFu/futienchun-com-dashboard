@@ -1,5 +1,44 @@
 # Loop Engineering Progress
 
+## 2026-06-25
+
+### Session Goal
+
+执行每日收盘自动化：按 `public-close + market-mode close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades` 口径重建 Dashboard，验证本地页面与模拟盘状态，并推送公网。
+
+### Actions
+
+- 已按要求读取 automation memory、`AGENTS.md`、`task_plan.md`、`findings.md`、`progress.md`、`.codex/PROJECT_CONTEXT.md` 与 `README.md`；本轮未读取 `.env`、`.shioaji.local.env`、API key、token，未调用券商下单。
+- 已执行正式重建，耗时 `real 29.43`；由于 `.venv` 缺 `scipy`，本轮带 `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages` 复用已安装 user-site 依赖，避免 `multi-factor-shrink` 退化。
+- Dashboard 今日更新日期切到 `2026-06-25`，公开收盘价共同序列推进到 `2026-06-24`；已生成 `data/model_portfolio_market_2026-06-24.csv` 与 summary，15 檔成功、缺失 0 檔。
+- 本轮 `--execute-simulated-trades` 新增模拟成交 `2` 笔，均为卖出：`2317` 卖出 `3` 股、`2881` 卖出 `24` 股；执行后 `2317` 剩 `8` 股、`2881` 剩 `96` 股、`2882` 维持 `124` 股。
+- 已同步 Dashboard 研究摘要漂移到 QA 基线与 iCloud Obsidian `台股量化基金.md`：`AI 供应链权重 33.00%`、`风险贡献 52.71%`、`风险-权重差 +19.71%`、`trade_count=2`。
+
+### Verification Log
+
+- `./.venv/bin/python -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py scripts/validate_research_brief_sync.py scripts/validate_research_brief_metrics.py` 通过。
+- 正式重建完成：`/usr/bin/time -p` 实测 `real 29.43`，成功生成正式 `dashboard/index.html`。
+- 页面解析通过：`今日 Dashboard 更新日期=2026-06-25`、`行情/回测序列最新日期=2026-06-24`、`预计下次回测调仓=2026-06-29`、`距下次还差交易日=4`、`最后模拟盘执行日=2026-06-24`、`已落账模拟成交=2`。
+- 策略监控检查通过：`signal-pill sell=0`、可见 `建议卖出=0`，没有已落账标的仍显示红色建议卖出。
+
+### Files Changed
+
+- `dashboard/index.html`
+- `data/model_portfolio_2026-06-03.csv`
+- `data/model_portfolio_latest.csv`
+- `data/model_portfolio_market_2026-06-24.csv`
+- `data/model_portfolio_market_2026-06-24_summary.txt`
+- `data/simulated_positions_2026-06-24.csv`
+- `data/simulated_positions_latest.csv`
+- `data/simulated_trades_2026-06-24.csv`
+- `scripts/validate_research_brief_sync.py`
+- `scripts/validate_research_brief_metrics.py`
+- `scripts/run_local_qa_checks.py`
+- `progress.md`
+- `findings.md`
+- `.codex/PROJECT_CONTEXT.md`
+- iCloud Obsidian `台股量化基金.md`
+
 ## 2026-06-24
 
 ### Session Goal

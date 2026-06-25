@@ -1,5 +1,14 @@
 # Loop Engineering Findings
 
+## 2026-06-25 收盘日更
+
+- 本轮按正式日更口径执行 `public-close + market-mode close + --execute-simulated-trades`，并用 user-site `PYTHONPATH` 补足 `.venv` 缺失的 `scipy`，重建耗时 `real 29.43`。
+- Dashboard 今日更新日期已切到 `2026-06-25`，公开收盘价共同交易日推进到 `2026-06-24`；正式生成 `data/model_portfolio_market_2026-06-24.csv`，15 檔成功、缺失 0 檔。
+- 本轮 `--execute-simulated-trades` 新增本地模拟卖出 `2` 笔：`2317` 卖出 `3` 股、`2881` 卖出 `24` 股；执行后 `2317` 剩 `8` 股、`2881` 剩 `96` 股、`2882` 维持 `124` 股。
+- 当前调仓日历为：最后回测调仓日 `2026-06-17`，预计下次回测调仓 `2026-06-29`，距下次还差 `4` 个共同交易日；最后模拟盘执行日 `2026-06-24`。
+- 策略监控确认 `signal-pill sell=0`、可见 `建议卖出=0`，没有已落账标的仍显示红色建议卖出。
+- 正式重建后研究摘要关键数字变为 `AI 供应链权重 33.00%`、`风险贡献 52.71%`、`风险-权重差 +19.71%`、`trade_count=2`；QA 基线与 iCloud Obsidian `台股量化基金.md` 已同步。
+
 ## 2026-06-24 收盘日更
 
 - 本轮按正式日更口径执行 `public-close + market-mode close + --execute-simulated-trades`，重建耗时 `real 35.97`。
