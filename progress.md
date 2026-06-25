@@ -13,6 +13,7 @@
 - Dashboard 今日更新日期切到 `2026-06-25`，公开收盘价共同序列推进到 `2026-06-24`；已生成 `data/model_portfolio_market_2026-06-24.csv` 与 summary，15 檔成功、缺失 0 檔。
 - 本轮 `--execute-simulated-trades` 新增模拟成交 `2` 笔，均为卖出：`2317` 卖出 `3` 股、`2881` 卖出 `24` 股；执行后 `2317` 剩 `8` 股、`2881` 剩 `96` 股、`2882` 维持 `124` 股。
 - 已同步 Dashboard 研究摘要漂移到 QA 基线与 iCloud Obsidian `台股量化基金.md`：`AI 供应链权重 33.00%`、`风险贡献 52.71%`、`风险-权重差 +19.71%`、`trade_count=2`。
+- 提交 `0d61b81` 已推送到 `dashboard` 远端；Render 首页正文第 2 轮已验证切到今日页面。`origin/main` 比本地多 12 个 Antigravity/300k TWD 相关提交且与本地日更文件大范围分叉，本轮正常 push 被拒绝，未强推。
 
 ### Verification Log
 
@@ -20,6 +21,7 @@
 - 正式重建完成：`/usr/bin/time -p` 实测 `real 29.43`，成功生成正式 `dashboard/index.html`。
 - 页面解析通过：`今日 Dashboard 更新日期=2026-06-25`、`行情/回测序列最新日期=2026-06-24`、`预计下次回测调仓=2026-06-29`、`距下次还差交易日=4`、`最后模拟盘执行日=2026-06-24`、`已落账模拟成交=2`。
 - 策略监控检查通过：`signal-pill sell=0`、可见 `建议卖出=0`，没有已落账标的仍显示红色建议卖出。
+- 公网验证通过：`https://futienchun-com-dashboard.onrender.com/` 正文命中 `今日 Dashboard 更新日期：2026-06-25`、`行情/回测序列最新日期：2026-06-24`、`2317 卖出 3 股、2881 卖出 24 股`，且 `signal-pill sell=0`。
 
 ### Files Changed
 
