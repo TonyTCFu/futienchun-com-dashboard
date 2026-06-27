@@ -2072,4 +2072,6 @@
 
 ### Next Loop Recommendation
 
-- 等本地 QA、提交推送与 Render 正文验证完成后，把公网状态补入本节和自动化记忆。
+- 本地 QA 已通过，提交 `b066ca9` 已在本地创建；`git push dashboard main` 与 `git push origin main` 均被本机 GitHub HTTPS 凭证阻塞：`could not read Username for 'https://github.com': Device not configured`。
+- Render `/healthz` 返回 `200`，但公网首页正文仍停在 `今日 Dashboard 更新日期：2026-06-26`、`行情/回测序列最新日期：2026-06-25`；这不是 Render 已更新，而是部署远端尚未推送成功。
+- 下一轮优先恢复 GitHub 推送凭证，或在用户确认后改用可处理大文件的发布通道，再推送本地提交并重新验证公网正文。
