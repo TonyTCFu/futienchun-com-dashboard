@@ -2049,3 +2049,27 @@
 ### Next Loop Recommendation
 
 - 下一轮可以把这份比较脚本接入可选 QA 分支，或把同样口径直接摘要到 Dashboard 的研究说明区。
+
+## 2026-06-27 每日收盘自动化
+
+### Session Goal
+
+按 `dashboard` 自动化口径执行公开收盘价日更：只读行情、本地模拟盘落账、Dashboard 重建、本地 QA、部署远端推送与公网正文验证。
+
+### Actions
+
+- 使用 `public-close + close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades` 正式重建 Dashboard。
+- 生成 `data/model_portfolio_market_2026-06-26.csv` 与 summary，并写入本地模拟盘 2026-06-26 成交/持仓 CSV。
+- 同步 iCloud Obsidian `台股量化基金.md` 的最新研究摘要，修正新扩展框架结构变化行。
+
+### Verification Log
+
+- 已执行 `./.venv/bin/python -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py scripts/validate_research_brief_sync.py scripts/validate_research_brief_metrics.py`，结果通过。
+- 已执行正式重建命令，`real 27.71`，页面今日更新日期为 `2026-06-27`，行情/回测序列最新日期为 `2026-06-26`。
+- 本轮新增本地模拟卖出 `1` 笔：`2317` 卖出 `2` 股；执行后 `2317` 剩 `4` 股，`2303` 剩 `107` 股，`2881` 剩 `76` 股，`2882` 维持 `124` 股。
+- 调仓日历：最后回测调仓日 `2026-06-17`，预计下次回测调仓 `2026-06-29`，距下次还差 `2` 个共同交易日；最后模拟盘执行日 `2026-06-26`。
+- Dashboard 验证：`signal-pill sell=0`、可见 `建议卖出=0`；策略监控仍有 `2454` 一笔待确认买入 `1` 股。
+
+### Next Loop Recommendation
+
+- 等本地 QA、提交推送与 Render 正文验证完成后，把公网状态补入本节和自动化记忆。
