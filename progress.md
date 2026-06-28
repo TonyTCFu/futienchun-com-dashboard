@@ -1,5 +1,44 @@
 # Loop Engineering Progress
 
+## 2026-06-28
+
+### Session Goal
+
+执行每日收盘自动化：按 `public-close + market-mode close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades` 口径重建 Dashboard，验证本地页面、模拟盘与研究摘要同步，并尝试推送公网。
+
+### Actions
+
+- 已按要求读取 automation memory、`AGENTS.md`、`task_plan.md`、`findings.md`、`progress.md`、`.codex/PROJECT_CONTEXT.md` 与 `README.md`；本轮未读取 `.env`、`.shioaji.local.env`、API key、token，未调用券商下单。
+- 已执行正式重建，耗时 `real 23.88`；本轮继续带 `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages` 复用 user-site `scipy`，避免 `multi-factor-shrink` 退化。
+- Dashboard 今日更新日期切到 `2026-06-28`，公开收盘价共同序列仍为 `2026-06-26`；今天是周日，本轮刷新 `data/model_portfolio_market_2026-06-26.csv` 与 summary，15 檔成功、缺失 0 檔。
+- 本轮 `--execute-simulated-trades` 对 `2026-06-26` 保持幂等，未新增 dated 模拟成交文件；最后模拟盘执行日仍为 `2026-06-26`，已落账模拟成交 `1` 笔：`2317` 卖出 `2` 股，执行后 `2317` 剩 `4` 股。
+- 策略监控显示 `1` 笔待确认买入：`2454` 建议买入 `1` 股，触发原因为 `回落加码`；`signal-pill sell=0`、可见 `建议卖出=0`，没有已落账标的仍显示红色建议卖出。
+- 已同步 Dashboard 研究摘要漂移到 QA 基线与 iCloud Obsidian `台股量化基金.md`：`AI 供应链权重 33.00%`、`风险贡献 52.82%`、`风险-权重差 +19.82%`、`trade_count=1`。
+
+### Verification Log
+
+- `./.venv/bin/python -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py scripts/validate_research_brief_sync.py scripts/validate_research_brief_metrics.py` 通过。
+- 正式重建完成：`/usr/bin/time -p` 实测 `real 23.88`，成功生成正式 `dashboard/index.html`。
+- 页面解析通过：`今日 Dashboard 更新日期=2026-06-28`、`行情/回测序列最新日期=2026-06-26`、`最后回测调仓日=2026-06-17`、`预计下次回测调仓=2026-06-29`、`距下次还差交易日=1`、`最后模拟盘执行日=2026-06-26`、`已落账模拟成交=1`。
+- 策略监控检查通过：`signal-pill sell=0`、可见 `建议卖出=0`；本轮只有 `2454` 一笔待确认买入，不是已落账卖出残留。
+- `./.venv/bin/python scripts/run_local_qa_checks.py` 通过，输出 `/tmp/tw_quant_local_qa_summary.md` 与 `/tmp/tw_quant_local_qa_summary.json`。
+- 推送验证失败：`git push dashboard main` 与 `git push origin main` 均被本机 GitHub HTTPS 凭证阻塞：`could not read Username for 'https://github.com': Device not configured`；Render `/healthz` 为 `200`，首页正文仍停在 `2026-06-26 / 2026-06-25`。
+
+### Files Changed
+
+- `dashboard/index.html`
+- `data/model_portfolio_2026-06-03.csv`
+- `data/model_portfolio_latest.csv`
+- `data/model_portfolio_market_2026-06-26.csv`
+- `data/model_portfolio_market_2026-06-26_summary.txt`
+- `scripts/validate_research_brief_sync.py`
+- `scripts/validate_research_brief_metrics.py`
+- `scripts/run_local_qa_checks.py`
+- `progress.md`
+- `findings.md`
+- `.codex/PROJECT_CONTEXT.md`
+- iCloud Obsidian `台股量化基金.md`
+
 ## 2026-06-26
 
 ### Session Goal
