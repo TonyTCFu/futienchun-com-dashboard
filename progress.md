@@ -14,6 +14,8 @@
 - 本轮 `--execute-simulated-trades` 对 `2026-06-26` 保持幂等，新增模拟成交 `0` 笔；最后模拟盘执行日仍为 `2026-06-26`，已落账模拟成交仍为 `1` 笔：`2317` 卖出 `2` 股，执行后 `2317` 剩 `4` 股。
 - 策略监控仍显示 `1` 笔待确认买入：买入 `1` 笔、卖出 `0` 笔；`signal-pill sell=0`、可见 `建议卖出=0`，没有已落账标的仍显示红色建议卖出。
 - 研究摘要基线未漂移：`AI 供应链权重 33.00%`、`风险贡献 52.82%`、`风险-权重差 +19.82%`、`trade_count=1`，本轮无需同步 QA 脚本或 Obsidian 卡片。
+- 提交 `c82fe94` 已推送到 `dashboard` 远端，Render 首页正文第 2 轮轮询切到 `今日 Dashboard 更新日期：2026-06-29`、`行情/回测序列最新日期：2026-06-26`。
+- `origin` 普通推送仍失败：`could not read Username for 'https://github.com': Device not configured`；该远端同时仍有并行分叉，本轮未强推、未自动合并。
 
 ### Verification Log
 
@@ -22,6 +24,7 @@
 - 页面解析通过：`今日 Dashboard 更新日期=2026-06-29`、`行情/回测序列最新日期=2026-06-26`、`最后回测调仓日=2026-06-17`、`预计下次回测调仓=2026-06-29`、`距下次还差交易日=1`、`最后模拟盘执行日=2026-06-26`、`已落账模拟成交=1`。
 - 策略监控检查通过：`signal-pill sell=0`、可见 `建议卖出=0`；本轮只有一笔待确认买入，不是已落账卖出残留。
 - `./.venv/bin/python scripts/run_local_qa_checks.py` 通过，输出 `/tmp/tw_quant_local_qa_summary.md` 与 `/tmp/tw_quant_local_qa_summary.json`。
+- 公网验证通过：`https://futienchun-com-dashboard.onrender.com/` 正文命中 `今日 Dashboard 更新日期：2026-06-29` 与 `行情/回测序列最新日期：2026-06-26`，且公网 `signal-pill sell=0`、可见 `建议卖出=0`。
 
 ### Files Changed
 
