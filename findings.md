@@ -1,5 +1,14 @@
 # Loop Engineering Findings
 
+## 2026-06-29 收盘日更
+
+- 本轮按正式日更口径执行 `public-close + market-mode close + --execute-simulated-trades`，并用 user-site `PYTHONPATH` 补足 `.venv` 缺失的 `scipy`，重建耗时 `real 25.75`。
+- Dashboard 今日更新日期已切到 `2026-06-29`，但公开收盘价共同交易日仍停在 `2026-06-26`；本轮刷新 `data/model_portfolio_market_2026-06-26.csv`，15 檔成功、缺失 0 檔。这是公开收盘资料新鲜度限制，不是页面生成失败。
+- 本轮 `--execute-simulated-trades` 保持幂等，新增模拟成交 `0` 笔；最后模拟盘执行日仍为 `2026-06-26`，已落账 `2317` 卖出 `2` 股，执行后 `2317` 剩 `4` 股。
+- 当前调仓日历为：最后回测调仓日 `2026-06-17`，预计下次回测调仓 `2026-06-29`，距下次还差 `1` 个共同交易日。
+- 策略监控确认 `signal-pill sell=0`、可见 `建议卖出=0`，没有已落账标的仍显示红色建议卖出；本轮仍有 `1` 笔待确认买入。
+- 研究摘要关键数字未漂移，仍为 `AI 供应链权重 33.00%`、`风险贡献 52.82%`、`风险-权重差 +19.82%`、`trade_count=1`；本地 QA 汇总通过。
+
 ## 2026-06-29 公网推送修复
 
 - 6/27 与 6/28 公网推送失败的直接原因不是 Render 或仓库分叉，而是 `dashboard` / `origin` 两个 remote 都使用 HTTPS push，当前 shell 没有 GitHub credential helper、没有 `gh`，因此 `git push` 在非交互环境报 `could not read Username for 'https://github.com': Device not configured`。

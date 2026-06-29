@@ -4,6 +4,38 @@
 
 ### Session Goal
 
+执行每日收盘自动化：按 `public-close + market-mode close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades` 口径重建 Dashboard，验证本地页面、模拟盘状态与公网发布。
+
+### Actions
+
+- 已按要求读取 automation memory、`AGENTS.md`、`task_plan.md`、`findings.md`、`progress.md`、`.codex/PROJECT_CONTEXT.md` 与 `README.md`；本轮未读取 `.env`、`.shioaji.local.env`、API key、token，未调用券商下单。
+- 已执行正式重建，耗时 `real 25.75`；本轮继续带 `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages` 复用 user-site `scipy`，避免 `multi-factor-shrink` 退化。
+- Dashboard 今日更新日期切到 `2026-06-29`，但当前公开收盘价共同序列仍为 `2026-06-26`；本轮刷新 `data/model_portfolio_market_2026-06-26.csv` 与 summary，15 檔成功、缺失 0 檔。
+- 本轮 `--execute-simulated-trades` 对 `2026-06-26` 保持幂等，新增模拟成交 `0` 笔；最后模拟盘执行日仍为 `2026-06-26`，已落账模拟成交仍为 `1` 笔：`2317` 卖出 `2` 股，执行后 `2317` 剩 `4` 股。
+- 策略监控仍显示 `1` 笔待确认买入：买入 `1` 笔、卖出 `0` 笔；`signal-pill sell=0`、可见 `建议卖出=0`，没有已落账标的仍显示红色建议卖出。
+- 研究摘要基线未漂移：`AI 供应链权重 33.00%`、`风险贡献 52.82%`、`风险-权重差 +19.82%`、`trade_count=1`，本轮无需同步 QA 脚本或 Obsidian 卡片。
+
+### Verification Log
+
+- `./.venv/bin/python -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py scripts/validate_research_brief_sync.py scripts/validate_research_brief_metrics.py` 通过。
+- 正式重建完成：`/usr/bin/time -p` 实测 `real 25.75`，成功生成正式 `dashboard/index.html`。
+- 页面解析通过：`今日 Dashboard 更新日期=2026-06-29`、`行情/回测序列最新日期=2026-06-26`、`最后回测调仓日=2026-06-17`、`预计下次回测调仓=2026-06-29`、`距下次还差交易日=1`、`最后模拟盘执行日=2026-06-26`、`已落账模拟成交=1`。
+- 策略监控检查通过：`signal-pill sell=0`、可见 `建议卖出=0`；本轮只有一笔待确认买入，不是已落账卖出残留。
+- `./.venv/bin/python scripts/run_local_qa_checks.py` 通过，输出 `/tmp/tw_quant_local_qa_summary.md` 与 `/tmp/tw_quant_local_qa_summary.json`。
+
+### Files Changed
+
+- `dashboard/index.html`
+- `data/model_portfolio_market_2026-06-26.csv`
+- `data/model_portfolio_market_2026-06-26_summary.txt`
+- `progress.md`
+- `findings.md`
+- `.codex/PROJECT_CONTEXT.md`
+
+## 2026-06-29 推送修复
+
+### Session Goal
+
 修复 6/27 与 6/28 Dashboard 公网推送失败问题，让部署仓库和 Render 公网首页同步到最新本地 Dashboard。
 
 ### Actions
