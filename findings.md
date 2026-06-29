@@ -1,5 +1,12 @@
 # Loop Engineering Findings
 
+## 2026-06-29 公网推送修复
+
+- 6/27 与 6/28 公网推送失败的直接原因不是 Render 或仓库分叉，而是 `dashboard` / `origin` 两个 remote 都使用 HTTPS push，当前 shell 没有 GitHub credential helper、没有 `gh`，因此 `git push` 在非交互环境报 `could not read Username for 'https://github.com': Device not configured`。
+- 本机已有可用 SSH alias `github-worldcup`，指向 `github.com` 且认证为 `TonyTCFu`；已把 `dashboard` remote 的 push URL 改为 `git@github-worldcup:TonyTCFu/futienchun-com-dashboard.git`，fetch URL 仍保留 HTTPS。
+- `dashboard/main` 相对本地是快进关系，已成功把 `b066ca9`、`444470f`、`53b6dcc` 推到部署仓库；Render 首页正文随后切到 `今日 Dashboard 更新日期：2026-06-28` 与 `行情/回测序列最新日期：2026-06-26`。
+- `origin/main` 仍是 Antigravity/资金规模相关并行历史分叉，本轮未强推、未合并；Dashboard 日更公网发布以后默认只依赖 `dashboard` remote。
+
 ## 2026-06-28 收盘日更
 
 - 本轮按正式日更口径执行 `public-close + market-mode close + --execute-simulated-trades`，并用 user-site `PYTHONPATH` 补足 `.venv` 缺失的 `scipy`，重建耗时 `real 23.88`。
@@ -8,7 +15,7 @@
 - 当前调仓日历为：最后回测调仓日 `2026-06-17`，预计下次回测调仓 `2026-06-29`，距下次还差 `1` 个共同交易日。
 - 策略监控确认 `signal-pill sell=0`、可见 `建议卖出=0`，没有已落账标的仍显示红色建议卖出；本轮仍有 `2454` 一笔待确认买入 `1` 股。
 - 正式重建后研究摘要关键数字变为 `AI 供应链权重 33.00%`、`风险贡献 52.82%`、`风险-权重差 +19.82%`、`trade_count=1`；QA 基线与 iCloud Obsidian `台股量化基金.md` 已同步。
-- 本轮本地提交已创建；但 `dashboard` 与 `origin` 两个 HTTPS 远端推送仍被本机 GitHub 凭证阻塞，公网 Render 正文仍停在 `2026-06-26 / 2026-06-25`。
+- 本轮本地提交已创建；初始 `dashboard` 与 `origin` 两个 HTTPS 远端推送仍被本机 GitHub 凭证阻塞，随后已在 2026-06-29 将 `dashboard` push URL 改为 SSH alias 并成功推送，公网 Render 正文已切到 `2026-06-28 / 2026-06-26`。
 
 ## 2026-06-26 收盘日更
 

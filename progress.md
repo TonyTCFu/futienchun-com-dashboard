@@ -1,5 +1,33 @@
 # Loop Engineering Progress
 
+## 2026-06-29
+
+### Session Goal
+
+修复 6/27 与 6/28 Dashboard 公网推送失败问题，让部署仓库和 Render 公网首页同步到最新本地 Dashboard。
+
+### Actions
+
+- 已确认失败原因：`dashboard` / `origin` 两个 remote 都使用 HTTPS push，但当前环境没有 `gh`、没有 Git credential helper，非交互 push 报 `could not read Username for 'https://github.com': Device not configured`。
+- 已检查 SSH：默认 `git@github.com` 不可用，但本机 `~/.ssh/config` 已有 `github-worldcup` alias，可认证为 `TonyTCFu`。
+- 已将 `dashboard` remote 的 push URL 改为 `git@github-worldcup:TonyTCFu/futienchun-com-dashboard.git`，fetch URL 保持 `https://github.com/TonyTCFu/futienchun-com-dashboard.git`。
+- 已确认 `dashboard/main..HEAD` 为快进关系，成功把 `b066ca9`、`444470f`、`53b6dcc` 推送到公网部署仓库。
+- 未推送 `origin`：`origin/main...HEAD` 仍是 `19 / 10` 的并行分叉，包含 Antigravity/资金规模相关提交；本轮按既定边界不强推、不自动合并。
+
+### Verification Log
+
+- `ssh -T github-worldcup` 通过，返回 GitHub 认证成功。
+- `git push dashboard main` 通过：`72df915..53b6dcc main -> main`。
+- Render 首页正文第 4 轮轮询切到 `今日 Dashboard 更新日期：2026-06-28`、`行情/回测序列最新日期：2026-06-26`。
+- 公网 HTML 检查：`signal-pill sell=0`、可见 `建议卖出=0`。
+
+### Files Changed
+
+- `.git/config`：只改本机 `dashboard` push URL，不纳入 Git 提交。
+- `progress.md`
+- `findings.md`
+- `.codex/PROJECT_CONTEXT.md`
+
 ## 2026-06-28
 
 ### Session Goal
@@ -22,7 +50,7 @@
 - 页面解析通过：`今日 Dashboard 更新日期=2026-06-28`、`行情/回测序列最新日期=2026-06-26`、`最后回测调仓日=2026-06-17`、`预计下次回测调仓=2026-06-29`、`距下次还差交易日=1`、`最后模拟盘执行日=2026-06-26`、`已落账模拟成交=1`。
 - 策略监控检查通过：`signal-pill sell=0`、可见 `建议卖出=0`；本轮只有 `2454` 一笔待确认买入，不是已落账卖出残留。
 - `./.venv/bin/python scripts/run_local_qa_checks.py` 通过，输出 `/tmp/tw_quant_local_qa_summary.md` 与 `/tmp/tw_quant_local_qa_summary.json`。
-- 推送验证失败：`git push dashboard main` 与 `git push origin main` 均被本机 GitHub HTTPS 凭证阻塞：`could not read Username for 'https://github.com': Device not configured`；Render `/healthz` 为 `200`，首页正文仍停在 `2026-06-26 / 2026-06-25`。
+- 初始推送验证失败：`git push dashboard main` 与 `git push origin main` 均被本机 GitHub HTTPS 凭证阻塞：`could not read Username for 'https://github.com': Device not configured`；已于 2026-06-29 改用 `github-worldcup` SSH alias 修复 `dashboard` push，Render 首页正文已切到 `2026-06-28 / 2026-06-26`。
 
 ### Files Changed
 
