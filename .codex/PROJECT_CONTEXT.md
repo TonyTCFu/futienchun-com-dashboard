@@ -7,6 +7,11 @@
 ## 二、当前状态
 
 - 已完成静态风险仪表盘 MVP。
+- 2026-07-01 已在新 Obsidian Workspace 完成收盘日更：Dashboard 更新日期 `2026-07-01`，行情/回测序列最新日期 `2026-06-29`，最后回测调仓日 `2026-06-29`，预计下次回测调仓 `2026-07-08`；本轮新增本地模拟卖出 `2` 笔（`2317` 1 股、`2454` 1 股），策略监控 `signal-pill sell=0`、可见 `建议卖出=0`。
+- 2026-07-01 新 Workspace 没有 `.venv/bin/python`，正式日更可用系统 `python3` 搭配 `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages`；QA 脚本已支持 `.venv` 不存在时回退当前解释器。
+- 2026-07-01 当前 Git 根目录是多项目 Workspace `/Users/tonyfu/Library/Mobile Documents/iCloud~md~obsidian/Documents/Codex`，不能直接把整仓库推到旧 Render Dashboard 部署仓库；公网发布需使用部署仓库临时克隆或专门映射。
+- 2026-06-30 已确认多设备运行链路：项目 Workspace 固定在 `/Users/tonyfu/Library/Mobile Documents/iCloud~md~obsidian/Documents/Codex/projects/台股_稳健投资组合量化模型构建`；Shioaji 本机敏感配置只留在 `/Users/tonyfu/Documents/Codex本地/稳健投资组合量化模型构建 2/`，不进入共享 Workspace。
+- 2026-06-30 已将 Dashboard 可见路径改为项目相对路径；后续从不同设备生成 Dashboard 时，不应再把某台设备的绝对项目路径写入共享页面。
 - 支持台股与台股 ETF 资产池。
 - 支持 TWSE 与 Shioaji 两种数据源。
 - 已安装 QVeris CLI：`qveris/0.6.0`，可直接用 `qveris` 命令；已确认 `eodhd.eod_historical_data.retrieve.v1.a43f3b91` 可查询台股日线，例如 `0050.TW`。
@@ -203,6 +208,11 @@
 - 2026-06-16 Dashboard 正式刷新结果：用既有 2026-06-08 市值档、`multi-factor-shrink`、`--ai-tilt moderate` 离线重建成功，`dashboard/index.html` hash 更新为 `1156b60d4f3c441f6766fe5746ee2f099acfb929d0e834a9c05e39b6ac4ec268`；模型盘 CSV 内容 hash 不变，正式模拟盘 CSV 未改。
 - 2026-06-16 Data Pipeline 纠错：本地没有 6/16 市值档；Shioaji 盘中更新因当前 shell 缺少环境变量未落地，QVeris/EODHD 对当天日线返回空；失败尝试后已恢复 `data/model_portfolio_latest.csv` 并用 6/8 市值档重建 Dashboard，QA 通过，当前 Dashboard hash 为 `c7b1449c9877460b5107bb79e4553a2a089bd9cfbd50a6f14160c1659236cb74`。
 - 2026-06-16 Shioaji 盘中每日更新已落地：生成 `data/model_portfolio_market_2026-06-16_intraday.csv`，15 檔全 ready，Dashboard 显示 6/16 盘中暂估；本地 QA 通过，但 QA 监控列表下一轮应从固定 6/8 改成自动识别当前市值档。
+- 2026-06-30 已为 Obsidian Vault 新路径补齐 Shioaji 行情缓存初始化流程：新增 `scripts/init_shioaji_market_cache.py`，用 Shioaji 历史 K 线只读接口生成 TWSE 兼容月缓存 `data/cache/{symbol}_{YYYYMM}.json`。新设备需先安装 `shioaji`、手动 `source .shioaji.local.env`，再运行 `python scripts/init_shioaji_market_cache.py --start 2024-01 --end 2026-06`；缓存目录不进入 Git。
+- 2026-06-30 初始化脚本早期验证：`python3 -m py_compile scripts/init_shioaji_market_cache.py` 通过；`python3 scripts/init_shioaji_market_cache.py --start 2024-01 --end 2024-02 --symbols 0050,2330 --dry-run` 通过，dry-run 不登录、不写文件。
+- 2026-06-30 新路径已实际运行 Shioaji 只读历史 K 线缓存初始化：通过本机原 Codex 项目的 `.shioaji.local.env` 注入环境变量，未复制、未打印、未提交密钥文件；生成 `data/cache/*.json` 共 450 个缓存文件。
+- 2026-06-30 已修复 Shioaji 31 天月份初始化失败：`kbars` 单次查询范围不能超过 30 天，`scripts/init_shioaji_market_cache.py` 现在会按 30 天以内分段拉取并合并为月缓存。
+- 2026-06-30 新路径本地验证通过：`.venv/bin/python -m py_compile src/risk_dashboard.py scripts/run_local_qa_checks.py scripts/serve_dashboard.py scripts/init_shioaji_market_cache.py` 成功；`.venv/bin/python scripts/run_local_qa_checks.py` 成功。
 - 2026-06-16 已把 `今日持仓与收盘盈亏`、`模拟盘调仓确认`、`策略监控与建议单` 前移到 Dashboard 上半段，打开首页先看到关键动作，再看到回测与图表。
 - `scripts/run_local_qa_checks.py` 已自动选取最新 `model_portfolio_market_*.csv`；`scripts/serve_dashboard.py` 与 `render.yaml` 已补好，可把生成后的 Dashboard 用标准库静态服务或 Render Web Service 挂出去。
 - 2026-06-16 已把公网服务升级成自动重建版：`scripts/serve_dashboard.py` 会在启动后先重建一次，再按 `Asia/Shanghai` 每天 `13:45` 继续重建；`--market-source public-close` 会用公开收盘价路径重建每日市值檔，并优先读取最新已生成的市值档。

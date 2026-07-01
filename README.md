@@ -81,6 +81,45 @@ pip install shioaji
 
 脚本会默认把 Shioaji token/cache 放在项目内 `.shioaji.runtime/`，该目录已加入 `.gitignore`，用于避免默认 `~/.shioaji` token 池冲突。
 
+### 新路径 Shioaji 行情缓存初始化
+
+多设备运行时，项目 Workspace 固定放在：
+
+```bash
+/Users/tonyfu/Library/Mobile Documents/iCloud~md~obsidian/Documents/Codex/projects/台股_稳健投资组合量化模型构建
+```
+
+本机敏感配置不放进 Workspace，保留在本机目录：
+
+```bash
+/Users/tonyfu/Documents/Codex本地/稳健投资组合量化模型构建 2/.shioaji.local.env
+/Users/tonyfu/Documents/Codex本地/稳健投资组合量化模型构建 2/.shioaji.runtime/token_pool/
+```
+
+`token_pool/` 只保留空目录结构；实际 token、`.shioaji.local.env`、`.venv/`、`data/cache/` 和 `data/matrix_cache/` 都是每台设备自己的本地状态，不进入 Git、不进入共享 Workspace。新设备从共用仓库拉下项目后，先在该设备本地准备 Shioaji 环境变量并重建月度行情缓存，再运行 `--offline-cache` 的 Dashboard / QA 流程。
+
+首次初始化建议流程：
+
+```bash
+cd "/Users/tonyfu/Library/Mobile Documents/iCloud~md~obsidian/Documents/Codex/projects/台股_稳健投资组合量化模型构建"
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+pip install shioaji
+source "/Users/tonyfu/Documents/Codex本地/稳健投资组合量化模型构建 2/.shioaji.local.env"
+python scripts/init_shioaji_market_cache.py --start 2024-01 --end 2026-06
+python src/risk_dashboard.py --start 2024-01 --end 2026-06 --offline-cache --data-source twse --model-portfolio --model-build-date 2026-06-03 --model-invest-ratio 0.75 --model-market-values data/model_portfolio_market_2026-06-26.csv --model-method multi-factor-shrink --ai-tilt moderate --output /tmp/tw_quant_new_path_smoke.html --model-output /tmp/tw_quant_new_path_model.csv
+```
+
+说明：
+
+- 初始化脚本只调用 Shioaji 历史 K 线行情，不呼叫下单、改单、撤单或账户查询。
+- 脚本只从当前 shell 的 `SHIOAJI_API_KEY` / `SHIOAJI_SECRET_KEY` 读取凭证，不读取、不打印、不提交 `.shioaji.local.env`。
+- 若新设备尚未建立本机敏感配置，可先运行 `bash scripts/configure_shioaji_env.sh` 生成 `.shioaji.local.env`，再把该文件移到本机 `Codex本地` 对应目录；不要把它留在共享 Workspace。
+- 脚本会写入 TWSE 兼容格式的 `data/cache/{symbol}_{YYYYMM}.json`，供既有 `--offline-cache` 逻辑复用。
+- 若只想先看会处理哪些文件，可运行 `python scripts/init_shioaji_market_cache.py --start 2024-01 --end 2026-06 --dry-run`。
+- 若要补单一标的或重跑某段月份，可使用 `--symbols 0050,2330 --start 2026-06 --end 2026-06 --force`。
+
 ## 首版模型边界
 
 第一版只实现最小方差组合、滚动再平衡研究与手动模拟建仓，不包含实盘交易、券商 API、下单、风险平价、Black-Litterman 或换手率约束。当前已新增一个保守的台股多因子收缩优化模型，用于和原本回撤风险加权模型并行比较。

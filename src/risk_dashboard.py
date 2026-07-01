@@ -41,6 +41,14 @@ MODEL_LOOKBACK_YEARS = 5
 MODEL_FALLBACK_LOOKBACK_YEARS = 2
 
 
+def display_path(path: Path | str) -> str:
+    candidate = Path(path)
+    try:
+        return str(candidate.resolve().relative_to(ROOT))
+    except (OSError, ValueError):
+        return str(candidate)
+
+
 @dataclass(frozen=True)
 class Asset:
     symbol: str
@@ -248,12 +256,12 @@ def parse_args() -> argparse.Namespace:
         help="模型盘权重方法。multi-factor-shrink 使用台股价格/量能多因子预期收益搭配收缩协方差。",
     )
     parser.add_argument("--model-cash", type=float, default=DEFAULT_MODEL_CASH, help="模型盘初始虚拟资金，单位为台币。")
-    parser.add_argument("--model-invest-ratio", type=float, default=DEFAULT_MODEL_INVEST_RATIO, help="模型盘目标建仓比例，例如 0.75 表示使用 75% 资金建仓。")
+    parser.add_argument("--model-invest-ratio", type=float, default=DEFAULT_MODEL_INVEST_RATIO, help="模型盘目标建仓比例，例如 0.75 表示使用 75%% 资金建仓。")
     parser.add_argument(
         "--ai-tilt",
         choices=("none", "moderate", "strong"),
         default="none",
-        help="仅用于 multi-factor-shrink：提高 AI 供应链目标权重。moderate 约 33%，strong 约 38%。",
+        help="仅用于 multi-factor-shrink：提高 AI 供应链目标权重。moderate 约 33%%，strong 约 38%%。",
     )
     parser.add_argument("--model-output", type=Path, default=DEFAULT_MODEL_OUTPUT, help="模型盘 CSV 输出路径。")
     parser.add_argument("--model-execution-orders", type=Path, help="手动建仓执行单 CSV；未指定时会自动读取 data/manual_build_orders_建仓日.csv。")
@@ -452,7 +460,7 @@ def load_price_matrix_cache(path: Path) -> tuple[PriceData, list[DataIssue]] | N
         symbol, _, message = row.partition("\t")
         if symbol and message:
             issues.append(DataIssue(symbol, message))
-    issues.append(DataIssue("CACHE", f"已使用聚合行情矩阵缓存：{path}"))
+    issues.append(DataIssue("CACHE", f"已使用聚合行情矩阵缓存：{display_path(path)}"))
     return PriceData(dates=dates, symbols=symbols, prices=prices, volumes=volumes, amounts=amounts), issues
 
 
@@ -556,7 +564,7 @@ def load_prices_from_twse(assets: Iterable[Asset], months: list[str], cache_dir:
     if offline_cache and not allow_stale_cache:
         cache_path = matrix_cache_path(assets, months, cache_dir)
         write_price_matrix_cache(cache_path, price_data, issues)
-        issues.append(DataIssue("CACHE", f"已生成聚合行情矩阵缓存：{cache_path}"))
+        issues.append(DataIssue("CACHE", f"已生成聚合行情矩阵缓存：{display_path(cache_path)}"))
     return price_data, issues
 
 
@@ -2610,7 +2618,7 @@ def append_market_snapshot_to_price_data(price_data: PriceData, market_values_pa
         volumes.append(float(mark.get("total_volume") or mark.get("volume") or 0.0))
         amounts.append(float(mark.get("total_amount") or 0.0))
     if missing:
-        issues.append(DataIssue("DAILY_MARKET", f"最新市值档 {market_values_path} 缺少 {missing[0]} 有效价格，未并入回测序列。"))
+        issues.append(DataIssue("DAILY_MARKET", f"最新市值档 {display_path(market_values_path)} 缺少 {missing[0]} 有效价格，未并入回测序列。"))
         return price_data
 
     appended_prices = np.vstack([price_data.prices, np.array(prices, dtype=float)])
@@ -2624,7 +2632,7 @@ def append_market_snapshot_to_price_data(price_data: PriceData, market_values_pa
         if price_data.amounts is not None
         else np.array([amounts], dtype=float)
     )
-    issues.append(DataIssue("DAILY_MARKET", f"已将最新市值档 {market_values_path} 并入回测价格序列，最新日期 {market_date}。"))
+    issues.append(DataIssue("DAILY_MARKET", f"已将最新市值档 {display_path(market_values_path)} 并入回测价格序列，最新日期 {market_date}。"))
     return PriceData(
         dates=[*price_data.dates, market_date],
         symbols=price_data.symbols,
@@ -3631,7 +3639,7 @@ def render_dashboard(
         <thead><tr><th>代码</th><th>名称</th><th>建仓价</th><th>当前价</th><th>持仓股数</th><th>买入市值</th><th>当前市值</th><th>未实现盈亏</th><th>盈亏率</th><th>目标权重</th><th>目标金额</th><th>买进手续费</th></tr></thead>
         <tbody>{model_rows}</tbody>
       </table>
-      <p class="footer-note">模型建仓分析区间：{model_portfolio.analysis_start_date} 至 {model_portfolio.analysis_end_date}；当前回测/行情序列最新日期：{dashboard_data_end}。模型盘 CSV 已输出到 {html.escape(str(model_portfolio.output_path))} 与 {html.escape(str(model_portfolio.dated_output_path))}。这是研究用途的 paper portfolio；持仓、盈亏和建议单都只属于本地模拟盘，不构成投资建议，也不是券商委托状态。</p>
+      <p class="footer-note">模型建仓分析区间：{model_portfolio.analysis_start_date} 至 {model_portfolio.analysis_end_date}；当前回测/行情序列最新日期：{dashboard_data_end}。模型盘 CSV 已输出到 {html.escape(display_path(model_portfolio.output_path))} 与 {html.escape(display_path(model_portfolio.dated_output_path))}。这是研究用途的 paper portfolio；持仓、盈亏和建议单都只属于本地模拟盘，不构成投资建议，也不是券商委托状态。</p>
     </section>
 {manual_trade_html}
 """
@@ -4497,7 +4505,7 @@ def main() -> None:
             execution_orders_path = args.model_execution_orders or default_execution_orders_path(args.model_build_date)
             execution_orders = load_model_execution_orders(execution_orders_path)
             if execution_orders:
-                issues.append(DataIssue("MODEL_PORTFOLIO", f"已套用模拟持仓/建仓执行单：{execution_orders_path}"))
+                issues.append(DataIssue("MODEL_PORTFOLIO", f"已套用模拟持仓/建仓执行单：{display_path(execution_orders_path)}"))
             updated_market: MarketSnapshotUpdate | None = None
             if args.market_source == "shioaji" or args.update_daily_market:
                 market_output_path = args.model_market_values or daily_market_output_path(args.market_date, args.market_mode)
@@ -4511,7 +4519,7 @@ def main() -> None:
                 issues.append(
                     DataIssue(
                         "DAILY_MARKET",
-                        f"已更新每日行情：{updated_market.path}，模式 {updated_market.market_mode}，成功 {updated_market.quote_count} 檔，缺失 {updated_market.missing_count} 檔。",
+                        f"已更新每日行情：{display_path(updated_market.path)}，模式 {updated_market.market_mode}，成功 {updated_market.quote_count} 檔，缺失 {updated_market.missing_count} 檔。",
                     )
                 )
             elif args.market_source == "public-close":
@@ -4552,7 +4560,7 @@ def main() -> None:
                     issues.append(
                         DataIssue(
                             "DAILY_MARKET",
-                            f"已用公开收盘价重建每日行情：{updated_market.path}，日期 {updated_market.market_date}，成功 {updated_market.quote_count} 檔，缺失 {updated_market.missing_count} 檔。",
+                            f"已用公开收盘价重建每日行情：{display_path(updated_market.path)}，日期 {updated_market.market_date}，成功 {updated_market.quote_count} 檔，缺失 {updated_market.missing_count} 檔。",
                         )
                     )
                 except Exception as exc:
@@ -4560,7 +4568,7 @@ def main() -> None:
             market_values_path = updated_market.path if updated_market else args.model_market_values or latest_market_values_path() or (ROOT / "data" / f"model_portfolio_market_{args.model_build_date}.csv")
             market_values = load_model_market_values(market_values_path)
             if market_values:
-                issues.append(DataIssue("MODEL_PORTFOLIO", f"已套用今日持仓市值：{market_values_path}"))
+                issues.append(DataIssue("MODEL_PORTFOLIO", f"已套用今日持仓市值：{display_path(market_values_path)}"))
             model_portfolio = build_model_portfolio(
                 assets=assets,
                 price_data=price_data,
@@ -4594,7 +4602,7 @@ def main() -> None:
                 issues.append(
                     DataIssue(
                         "SIMULATED_TRADES",
-                        f"已落账模拟成交 {trade_count} 笔，批次 {trade_batch_seq}：{trade_path}；已更新模拟持仓：{positions_path}",
+                        f"已落账模拟成交 {trade_count} 笔，批次 {trade_batch_seq}：{display_path(trade_path)}；已更新模拟持仓：{display_path(positions_path)}",
                     )
                 )
                 execution_orders = load_model_execution_orders(args.simulated_positions_output or DEFAULT_SIMULATED_POSITIONS_OUTPUT)
@@ -4616,7 +4624,7 @@ def main() -> None:
                     execution_orders=execution_orders,
                     market_values=market_values,
                 )
-            issues.append(DataIssue("MODEL_PORTFOLIO", f"已生成手动模型盘：{args.model_output}"))
+            issues.append(DataIssue("MODEL_PORTFOLIO", f"已生成手动模型盘：{display_path(args.model_output)}"))
         except Exception as exc:
             write_model_portfolio_status_csv(
                 output_path=args.model_output,

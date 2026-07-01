@@ -10,6 +10,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TMP_DIR = Path("/tmp")
 TRADE_DATE = "2026-06-08"
+VENV_PYTHON = ROOT / ".venv" / "bin" / "python"
+PYTHON = VENV_PYTHON if VENV_PYTHON.exists() else Path(sys.executable)
 
 
 def write_legacy_fixture(path: Path) -> None:
@@ -90,7 +92,7 @@ def validate_helper(fixture_path: Path) -> None:
 
 def validate_dashboard(fixture_path: Path, output_path: Path, model_output_path: Path) -> None:
     command = [
-        str(ROOT / ".venv" / "bin" / "python"),
+        str(PYTHON),
         str(ROOT / "src" / "risk_dashboard.py"),
         "--start",
         "2024-01",

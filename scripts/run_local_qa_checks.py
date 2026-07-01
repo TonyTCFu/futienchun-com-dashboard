@@ -10,7 +10,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PYTHON = ROOT / ".venv" / "bin" / "python"
+VENV_PYTHON = ROOT / ".venv" / "bin" / "python"
+PYTHON = VENV_PYTHON if VENV_PYTHON.exists() else Path(sys.executable)
 TMP_MARKDOWN_OUTPUT = Path("/tmp/tw_quant_local_qa_research_brief.md")
 TMP_SUMMARY_OUTPUT = Path("/tmp/tw_quant_local_qa_summary.md")
 TMP_SUMMARY_JSON_OUTPUT = Path("/tmp/tw_quant_local_qa_summary.json")
@@ -57,8 +58,8 @@ def validate_markdown_output(path: Path) -> None:
     required_fragments = [
         "# 台股量化 Dashboard 研究摘要",
         "AI 供应链权重 33.00%",
-        "风险贡献 52.82%",
-        "风险-权重差 +19.82%",
+        "风险贡献 52.76%",
+        "风险-权重差 +19.76%",
         "不代表未来报酬预测",
         "实盘订单或券商账户状态",
         "默认写入 `/tmp` 作为预览",

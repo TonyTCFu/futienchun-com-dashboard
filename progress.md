@@ -1,5 +1,105 @@
 # Loop Engineering Progress
 
+## 2026-07-01 收盘日更
+
+### Session Goal
+
+执行每日收盘自动化：在新 Obsidian Workspace 路径按 `public-close + market-mode close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades` 口径重建 Dashboard，验证本地页面、模拟盘状态、QA 与公网发布。
+
+### Actions
+
+- 已确认运行路径为 `/Users/tonyfu/Library/Mobile Documents/iCloud~md~obsidian/Documents/Codex/projects/台股_稳健投资组合量化模型构建`，未回到旧本机项目目录。
+- 已按要求读取 automation memory、`AGENTS.md`、`task_plan.md`、`findings.md`、`progress.md`、`.codex/PROJECT_CONTEXT.md` 与 `README.md`；本轮未读取 `.env`、`.shioaji.local.env`、API key、token，未调用券商下单。
+- 新 Workspace 没有 `.venv/bin/python`，本轮使用系统 `python3` 并带 `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages`，确保 `multi-factor-shrink` 使用既有 user-site 依赖。
+- 已修复 argparse help 中未转义 `%` 导致 `python3 src/risk_dashboard.py --help` 失败的问题；只改 CLI 帮助文案，不改模型逻辑。
+- 已执行正式重建，耗时 `real 72.69`；Dashboard 今日更新日期切到 `2026-07-01`，公开收盘价共同序列推进到 `2026-06-29`，生成 `data/model_portfolio_market_2026-06-29.csv` 与 summary，15 檔成功、缺失 0 檔。
+- 本轮 `--execute-simulated-trades` 新增本地模拟成交 `2` 笔，均为卖出：`2317` 卖出 `1` 股、`2454` 卖出 `1` 股；执行后 `2317` 剩 `3` 股、`2454` 剩 `3` 股。
+- 策略监控显示待确认调仓 `0` 笔；`signal-pill sell=0`、可见 `建议卖出=0`，没有已落账标的仍显示红色建议卖出。
+- 已同步 Dashboard 研究摘要漂移到 QA 基线与 iCloud Obsidian `台股量化基金.md`：`AI 供应链权重 33.00%`、`风险贡献 52.76%`、`风险-权重差 +19.76%`、`trade_count=2`。
+- 新 Workspace 的 Git 根目录是多项目仓库 `/Users/tonyfu/Library/Mobile Documents/iCloud~md~obsidian/Documents/Codex`；本轮发布需区分 workspace `origin` 与旧 Render 部署仓库，避免把整个 Workspace 推到 Dashboard 仓库。
+
+### Verification Log
+
+- `python3 src/risk_dashboard.py --help` 通过。
+- `python3 -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py scripts/validate_research_brief_sync.py scripts/validate_research_brief_metrics.py scripts/export_research_brief_markdown.py scripts/validate_legacy_trade_batch_status.py` 通过。
+- 正式重建完成：`/usr/bin/time -p` 实测 `real 72.69`，成功生成正式 `dashboard/index.html`。
+- 页面解析通过：`今日 Dashboard 更新日期=2026-07-01`、`行情/回测序列最新日期=2026-06-29`、`最后回测调仓日=2026-06-29`、`预计下次回测调仓=2026-07-08`、`最后模拟盘执行日=2026-06-29`、`已落账模拟成交=2`。
+- 策略监控检查通过：`signal-pill sell=0`、可见 `建议卖出=0`；本轮无新的待确认调仓。
+- `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 scripts/run_local_qa_checks.py` 通过，输出 `/tmp/tw_quant_local_qa_summary.md` 与 `/tmp/tw_quant_local_qa_summary.json`。
+- 初始公网检查：`/healthz` 返回 200，但首页正文仍是旧标题 `台灣股市Codex`，未命中 `今日 Dashboard 更新日期`；需完成部署仓库推送后再复核公网正文。
+
+### Files Changed
+
+- `dashboard/index.html`
+- `data/model_portfolio_2026-06-03.csv`
+- `data/model_portfolio_latest.csv`
+- `data/model_portfolio_market_2026-06-29.csv`
+- `data/model_portfolio_market_2026-06-29_summary.txt`
+- `data/simulated_positions_2026-06-29.csv`
+- `data/simulated_positions_latest.csv`
+- `data/simulated_trades_2026-06-29.csv`
+- `scripts/run_local_qa_checks.py`
+- `scripts/validate_legacy_trade_batch_status.py`
+- `scripts/validate_research_brief_sync.py`
+- `scripts/validate_research_brief_metrics.py`
+- `src/risk_dashboard.py`
+- `progress.md`
+- `findings.md`
+- `.codex/PROJECT_CONTEXT.md`
+- iCloud Obsidian `台股量化基金.md`
+
+## 2026-06-30 Workspace 多设备链路确认
+
+### Session Goal
+
+确认台股项目迁入共享 Workspace 后，后续更新可从该 Workspace 生成，并把 Shioaji 本机敏感配置留在本机目录。
+
+### Actions
+
+- 已确认共享 Workspace 路径为 `/Users/tonyfu/Library/Mobile Documents/iCloud~md~obsidian/Documents/Codex/projects/台股_稳健投资组合量化模型构建`。
+- 已确认本机敏感配置只保留在 `/Users/tonyfu/Documents/Codex本地/稳健投资组合量化模型构建 2/`：`.shioaji.local.env` 与空的 `.shioaji.runtime/token_pool/` 目录结构。
+- 更新 `src/risk_dashboard.py`，以后 Dashboard 可见路径显示为项目相对路径，避免把某台设备的绝对路径写入共享产物。
+- 更新 `README.md`，固定说明 Workspace 与本机敏感配置分离的多设备运行链路。
+- 同步清理当前 `dashboard/index.html` 中旧项目绝对路径展示文本，未重跑行情、未写入模拟盘成交。
+
+### Verification Log
+
+- 已执行 `python3 -m py_compile src/risk_dashboard.py`，结果通过。
+- 已用只读目录检查确认 `.shioaji.runtime/token_pool/` 文件数为 0。
+- 未读取 `.shioaji.local.env` 内容，未读取 API Key、Token 或 Secret，未调用券商下单。
+
+## 2026-06-30 新路径 Shioaji 行情缓存初始化流程
+
+### Session Goal
+
+为 Obsidian Vault 下的新路径补齐 Shioaji 只读行情初始化流程，让 Mac mini / MacBook 拉下共用仓库后可以在本机重建 `data/cache/`，再运行 `--offline-cache` Dashboard / QA。
+
+### Actions
+
+- 新增 `scripts/init_shioaji_market_cache.py`，使用 Shioaji 历史 K 线只读接口，写入 TWSE 兼容格式的 `data/cache/{symbol}_{YYYYMM}.json`。
+- README 新增“新路径 Shioaji 行情缓存初始化”小节，说明 `.venv`、`shioaji`、`.shioaji.local.env`、初始化脚本和后续冒烟命令。
+- 本轮未读取 `.env`、`.shioaji.local.env`、API Key、Token；未调用下单、改单、撤单或账户查询。
+
+### Verification Log
+
+- 已执行 `python3 -m py_compile scripts/init_shioaji_market_cache.py`，结果通过。
+- 已执行 `python3 scripts/init_shioaji_market_cache.py --start 2024-01 --end 2024-02 --symbols 0050,2330 --dry-run`，结果列出 2 檔、2 个月、4 个待处理缓存文件；dry-run 不登录、不写文件。
+- 已执行 `python3 scripts/init_shioaji_market_cache.py --help`，确认参数说明可读。
+- 未实际拉取 Shioaji 行情，因为本轮按安全规则没有读取本地 `.shioaji.local.env`；实际初始化需用户先在本机 shell `source .shioaji.local.env`。
+
+### Files Changed
+
+- `scripts/init_shioaji_market_cache.py`
+- `README.md`
+- `progress.md`
+- `findings.md`
+- `.codex/PROJECT_CONTEXT.md`
+
+### Next Loop Recommendation
+
+- 在已加载 Shioaji 环境变量的 shell 中运行 `python scripts/init_shioaji_market_cache.py --start 2024-01 --end 2026-06`，随后重跑 `--offline-cache` 冒烟和 `scripts/run_local_qa_checks.py`。
+- 缓存目录 `data/cache/` 与 `data/matrix_cache/` 继续保持本地 ignored，不进入 Git。
+
 ## 2026-06-29
 
 ### Session Goal
@@ -2177,3 +2277,27 @@
 - 本地 QA 已通过，提交 `b066ca9` 已在本地创建；`git push dashboard main` 与 `git push origin main` 均被本机 GitHub HTTPS 凭证阻塞：`could not read Username for 'https://github.com': Device not configured`。
 - Render `/healthz` 返回 `200`，但公网首页正文仍停在 `今日 Dashboard 更新日期：2026-06-26`、`行情/回测序列最新日期：2026-06-25`；这不是 Render 已更新，而是部署远端尚未推送成功。
 - 下一轮优先恢复 GitHub 推送凭证，或在用户确认后改用可处理大文件的发布通道，再推送本地提交并重新验证公网正文。
+
+## 2026-06-30 Codex 多设备新路径 Shioaji 初始化
+
+### Session Goal
+
+确认 Obsidian Vault 下的新路径可以独立运行台股项目，并用 Shioaji 只读历史 K 线补齐本地行情缓存。
+
+### Actions
+
+- 在新路径创建本地 `.venv`，安装项目依赖、`shioaji`、`scipy` 与 `scikit-learn`。
+- 使用本机原 Codex 项目的 `.shioaji.local.env` 注入环境变量，未复制、未打印、未提交密钥文件。
+- 实际运行 `scripts/init_shioaji_market_cache.py`，生成 `data/cache/{symbol}_{YYYYMM}.json` 本地缓存。
+- 修复 Shioaji 31 天月份失败：`kbars` 单次查询范围不能超过 30 天，脚本现在会分段拉取再合并月缓存。
+
+### Verification Log
+
+- 已确认 `data/cache/*.json` 共 450 个文件，覆盖 15 个标的与 2024-01 至 2026-06 共 30 个月。
+- 已执行 `.venv/bin/python -m py_compile src/risk_dashboard.py scripts/run_local_qa_checks.py scripts/serve_dashboard.py scripts/init_shioaji_market_cache.py`，结果通过。
+- 已执行 `.venv/bin/python scripts/run_local_qa_checks.py`，结果输出 `local_qa_checks_ok`。
+- 本轮只使用 Shioaji 公开行情读取能力；未下单、未改单、未撤单、未查账户。
+
+### Next Loop Recommendation
+
+- 另一台设备首次使用本项目时，仍需在该设备本地初始化 `data/cache/`；缓存、`.venv` 与 `.shioaji.local.env` 都不进入 Git。

@@ -1,5 +1,33 @@
 # Loop Engineering Findings
 
+## 2026-07-01 收盘日更
+
+- 本轮确认日更已在新 Obsidian Workspace 路径执行：`/Users/tonyfu/Library/Mobile Documents/iCloud~md~obsidian/Documents/Codex/projects/台股_稳健投资组合量化模型构建`，不是旧的本机项目目录。
+- 新 Workspace 当前没有 `.venv/bin/python`；正式重建可用系统 `python3` 搭配 `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages` 复用 user-site 依赖。QA 脚本已改为 `.venv` 存在时优先使用，否则回退当前解释器。
+- argparse 的 help 文案里字面 `%` 必须写成 `%%`，否则 `python3 src/risk_dashboard.py --help` 会报 `unsupported format character`；本轮只修帮助文案，不改变模型与交易逻辑。
+- 本轮按正式日更口径执行 `public-close + market-mode close + --execute-simulated-trades`，重建耗时 `real 72.69`。
+- Dashboard 今日更新日期已切到 `2026-07-01`，公开收盘价共同交易日推进到 `2026-06-29`；正式生成 `data/model_portfolio_market_2026-06-29.csv`，15 檔成功、缺失 0 檔。
+- 本轮新增本地模拟卖出 `2` 笔：`2317` 卖出 `1` 股、`2454` 卖出 `1` 股；执行后 `2317` 剩 `3` 股、`2454` 剩 `3` 股。
+- 当前调仓日历为：最后回测调仓日 `2026-06-29`，预计下次回测调仓 `2026-07-08`，最后模拟盘执行日 `2026-06-29`，已落账模拟成交 `2` 笔。
+- 策略监控确认 `signal-pill sell=0`、可见 `建议卖出=0`，本轮无新的待确认调仓；已落账卖出标的没有继续红色建议卖出残留。
+- 正式重建后研究摘要关键数字变为 `AI 供应链权重 33.00%`、`风险贡献 52.76%`、`风险-权重差 +19.76%`、`trade_count=2`；QA 基线与 iCloud Obsidian `台股量化基金.md` 已同步。
+- 新 Workspace 的 Git 根目录是多项目仓库 `/Users/tonyfu/Library/Mobile Documents/iCloud~md~obsidian/Documents/Codex`，旧 `dashboard` 远端不在当前 remote 列表中。发布到 Render 部署仓库时应使用临时部署仓库克隆或专门 remote/path 映射，避免把整个 Workspace 推到 `futienchun-com-dashboard`。
+
+## 2026-06-30 Workspace 与本机敏感配置分离
+
+- 台股项目后续固定从共享 Workspace 运行：`/Users/tonyfu/Library/Mobile Documents/iCloud~md~obsidian/Documents/Codex/projects/台股_稳健投资组合量化模型构建`。
+- Shioaji 本机敏感配置不进入共享 Workspace，当前保留在 `/Users/tonyfu/Documents/Codex本地/稳健投资组合量化模型构建 2/`，只包含 `.shioaji.local.env` 与空的 `.shioaji.runtime/token_pool/` 目录结构。
+- 后续更新默认在共享 Workspace 内生成代码、Dashboard、数据 CSV 与交接文档；`.shioaji.local.env`、token、`.venv/`、`data/cache/`、`data/matrix_cache/` 仍按本机状态处理，不进入 Git。
+- Dashboard 可见路径已改为项目相对路径，避免多设备运行时共享页面残留某台设备的绝对路径。
+
+## 2026-06-30 新路径 Shioaji 初始化
+
+- 新路径迁入 Obsidian Vault 后，`data/cache/` 与 `data/matrix_cache/` 不进入 Git；完整本地 QA 若使用 `--offline-cache`，必须先在每台设备本地初始化行情缓存。
+- 已新增 `scripts/init_shioaji_market_cache.py`：用 Shioaji 历史 K 线只读接口生成 TWSE 兼容月缓存 JSON，路径为 `data/cache/{symbol}_{YYYYMM}.json`。
+- 初始化脚本只读取当前 shell 的 `SHIOAJI_API_KEY` / `SHIOAJI_SECRET_KEY`，不读取 `.shioaji.local.env`；`.shioaji.local.env` 仍需由使用者在本地 shell 手动 `source`。
+- 验证已完成：`py_compile` 通过，`--dry-run` 能列出待处理缓存文件且不登录、不写文件。本轮未实际拉行情，因为没有读取本地密钥文件。
+- 推荐新设备流程：建 `.venv`、安装 `requirements.txt` 与 `shioaji`、`source .shioaji.local.env`、运行 `python scripts/init_shioaji_market_cache.py --start 2024-01 --end 2026-06`，再跑 `--offline-cache` 冒烟与本地 QA。
+
 ## 2026-06-29 收盘日更
 
 - 本轮按正式日更口径执行 `public-close + market-mode close + --execute-simulated-trades`，并用 user-site `PYTHONPATH` 补足 `.venv` 缺失的 `scipy`，重建耗时 `real 25.75`。
@@ -147,7 +175,7 @@
 
 ## 2026-06-14 初始发现
 
-- 项目路径：`/Users/tonyfu/Documents/稳健投资组合量化模型构建`。
+- 当时旧项目路径：`/Users/tonyfu/Documents/稳健投资组合量化模型构建`；2026-06-30 起当前 Workspace 路径改为 `/Users/tonyfu/Library/Mobile Documents/iCloud~md~obsidian/Documents/Codex/projects/台股_稳健投资组合量化模型构建`。
 - 当前项目已有 `README.md` 与 `.codex/PROJECT_CONTEXT.md`，但初始没有项目级 `AGENTS.md`、`task_plan.md`、`findings.md`、`progress.md`。
 - 项目不是 Git 仓库；原版 autoresearch 要求 Git 分支、提交与 reset，因此不能原样使用。
 - 可采用 Loop Engineering 的核心思想：目标设定、基线记录、小步实验、度量、保留/放弃、交接。
@@ -403,3 +431,10 @@
 - 当前旧 4 因子压力估计损失为 `-0.202641`，新扩展框架为 `-0.203092`，变化 `-0.000452`，表示新框架在该压力设定下略差，但差距很小。
 - 两版框架的高相关配对数均为 `14`，最高相关配对均为 `006208 / 00881`，相关性 `0.9354`，平均配对相关性均为 `0.4942`，说明这组资产的核心共振风险并未因扩因子而改变。
 - 该结果提醒我们：扩因子更像是在调权重与群组风险，而不是自动消除高相关资产之间的结构性重叠；这点对后续策略解释很重要。
+
+## 2026-06-30 Codex 多设备新路径 Shioaji 初始化发现
+
+- Shioaji 历史 K 线 `kbars` 单次查询范围不能超过 30 天；按自然月直接拉取会让 31 天月份失败。
+- `scripts/init_shioaji_market_cache.py` 已改为 30 天以内分段拉取并合并为 TWSE 兼容月缓存，解决 31 天月份初始化失败。
+- 新路径实际初始化后，`data/cache/` 共生成 450 个本地缓存文件；这证明 Obsidian Vault 下的新项目副本可以独立跑本地 QA。
+- `.shioaji.local.env` 仍应只留在本机敏感位置；多设备 Git 仓库只保存初始化脚本和流程，不保存密钥或缓存。
