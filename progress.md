@@ -26,7 +26,8 @@
 - 页面解析通过：`今日 Dashboard 更新日期=2026-07-01`、`行情/回测序列最新日期=2026-06-29`、`最后回测调仓日=2026-06-29`、`预计下次回测调仓=2026-07-08`、`最后模拟盘执行日=2026-06-29`、`已落账模拟成交=2`。
 - 策略监控检查通过：`signal-pill sell=0`、可见 `建议卖出=0`；本轮无新的待确认调仓。
 - `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 scripts/run_local_qa_checks.py` 通过，输出 `/tmp/tw_quant_local_qa_summary.md` 与 `/tmp/tw_quant_local_qa_summary.json`。
-- 初始公网检查：`/healthz` 返回 200，但首页正文仍是旧标题 `台灣股市Codex`，未命中 `今日 Dashboard 更新日期`；需完成部署仓库推送后再复核公网正文。
+- Workspace 提交 `b11d0c3` 已推送到 `origin`；部署仓库提交 `af26d3d` 已推送到 `futienchun-com-dashboard`。
+- 公网验证通过：`https://futienchun-com-dashboard.onrender.com/` 首页正文第 1 轮轮询命中 `今日 Dashboard 更新日期：2026-07-01` 与 `行情/回测序列最新日期：2026-06-29`，公网 `signal-pill sell=0`、可见 `建议卖出=0`。
 
 ### Files Changed
 

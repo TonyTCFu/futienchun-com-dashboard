@@ -12,6 +12,7 @@
 - 策略监控确认 `signal-pill sell=0`、可见 `建议卖出=0`，本轮无新的待确认调仓；已落账卖出标的没有继续红色建议卖出残留。
 - 正式重建后研究摘要关键数字变为 `AI 供应链权重 33.00%`、`风险贡献 52.76%`、`风险-权重差 +19.76%`、`trade_count=2`；QA 基线与 iCloud Obsidian `台股量化基金.md` 已同步。
 - 新 Workspace 的 Git 根目录是多项目仓库 `/Users/tonyfu/Library/Mobile Documents/iCloud~md~obsidian/Documents/Codex`，旧 `dashboard` 远端不在当前 remote 列表中。发布到 Render 部署仓库时应使用临时部署仓库克隆或专门 remote/path 映射，避免把整个 Workspace 推到 `futienchun-com-dashboard`。
+- 本轮已验证新 Workspace 发布路线：先把台股项目提交推送到 workspace `origin`，再用临时克隆把台股项目内容同步到 `futienchun-com-dashboard` 部署仓库根目录。部署仓库提交 `af26d3d` 推送后，Render 首页正文已切到 `2026-07-01 / 2026-06-29`，且公网 `signal-pill sell=0`、可见 `建议卖出=0`。
 
 ## 2026-06-30 Workspace 与本机敏感配置分离
 
