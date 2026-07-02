@@ -7,6 +7,9 @@
 ## 二、当前状态
 
 - 已完成静态风险仪表盘 MVP。
+- 2026-07-02 已在新 Obsidian Workspace 完成收盘日更：Dashboard 更新日期 `2026-07-02`，行情/回测序列最新日期 `2026-07-02`，最后回测调仓日 `2026-06-29`，预计下次回测调仓 `2026-07-08`；本轮新增本地模拟卖出 `2` 笔（`2317` 1 股、`2303` 22 股），策略监控 `signal-pill sell=0`、可见 `建议卖出=0`。
+- 2026-07-02 正式生成 `data/model_portfolio_market_2026-07-02.csv` 与 summary，15 檔成功、缺失 0 檔；继续使用系统 `python3` 搭配 `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages`，未读取敏感配置、未调用券商下单。
+- 2026-07-02 Dashboard 研究摘要关键数字仍为 `AI 供应链权重 33.00%`、`风险贡献 52.76%`、`风险-权重差 +19.76%`、`trade_count=2`；策略结构变化行已同步到 iCloud Obsidian `台股量化基金.md`。
 - 2026-07-01 已在新 Obsidian Workspace 完成收盘日更：Dashboard 更新日期 `2026-07-01`，行情/回测序列最新日期 `2026-06-29`，最后回测调仓日 `2026-06-29`，预计下次回测调仓 `2026-07-08`；本轮新增本地模拟卖出 `2` 笔（`2317` 1 股、`2454` 1 股），策略监控 `signal-pill sell=0`、可见 `建议卖出=0`。
 - 2026-07-01 新 Workspace 没有 `.venv/bin/python`，正式日更可用系统 `python3` 搭配 `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages`；QA 脚本已支持 `.venv` 不存在时回退当前解释器。
 - 2026-07-01 当前 Git 根目录是多项目 Workspace `/Users/tonyfu/Library/Mobile Documents/iCloud~md~obsidian/Documents/Codex`，不能直接把整仓库推到旧 Render Dashboard 部署仓库；本轮已验证安全路线是提交台股项目到 workspace `origin`，再用部署仓库临时克隆同步台股项目内容到 `futienchun-com-dashboard` 根目录。部署提交 `af26d3d` 后，Render 首页正文已切到 `2026-07-01 / 2026-06-29`。

@@ -1,5 +1,43 @@
 # Loop Engineering Progress
 
+## 2026-07-02 收盘日更
+
+### Session Goal
+
+执行每日收盘自动化：在新 Obsidian Workspace 路径按 `public-close + market-mode close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades` 口径重建 Dashboard，验证本地页面、模拟盘状态、QA 与公网发布。
+
+### Actions
+
+- 已确认运行路径为 `/Users/tonyfu/Library/Mobile Documents/iCloud~md~obsidian/Documents/Codex/projects/台股_稳健投资组合量化模型构建`，未读取 `.env`、`.shioaji.local.env`、API key、token，未调用券商下单。
+- 新 Workspace 仍没有 `.venv/bin/python`，本轮继续使用系统 `python3` 并带 `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages`，确保 `multi-factor-shrink` 使用既有 user-site 依赖。
+- 已执行正式重建，耗时 `real 20.15`；Dashboard 今日更新日期切到 `2026-07-02`，公开收盘价共同序列推进到 `2026-07-02`，生成 `data/model_portfolio_market_2026-07-02.csv` 与 summary，15 檔成功、缺失 0 檔。
+- 本轮 `--execute-simulated-trades` 新增本地模拟成交 `2` 笔，均为卖出：`2317` 卖出 `1` 股、`2303` 卖出 `22` 股；执行后 `2317` 剩 `2` 股、`2303` 剩 `85` 股。
+- 策略监控显示待确认调仓 `0` 笔；`signal-pill sell=0`、可见 `建议卖出=0`，没有已落账标的仍显示红色建议卖出。
+- 已同步 Dashboard 研究摘要漂移到 iCloud Obsidian `台股量化基金.md`：策略结构变化行更新为 `HHI 0.1609`、前三大权重 `61.92%`、有效持仓数 `6.22`、结构变化风险贡献 `52.78%`。
+
+### Verification Log
+
+- `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py scripts/validate_research_brief_sync.py scripts/validate_research_brief_metrics.py scripts/export_research_brief_markdown.py scripts/validate_legacy_trade_batch_status.py` 通过。
+- 正式重建完成：`/usr/bin/time -p` 实测 `real 20.15`，成功生成正式 `dashboard/index.html`。
+- 页面解析通过：`今日 Dashboard 更新日期=2026-07-02`、`行情/回测序列最新日期=2026-07-02`、`最后回测调仓日=2026-06-29`、`预计下次回测调仓=2026-07-08`、`最后模拟盘执行日=2026-07-02`、`已落账模拟成交=2`。
+- 策略监控检查通过：`signal-pill sell=0`、可见 `建议卖出=0`；本轮无新的待确认调仓。
+- 本地 QA 初次因 Obsidian 项目卡片缺少最新策略结构变化行而失败；同步 `台股量化基金.md` 后重跑 `scripts/run_local_qa_checks.py` 已通过。
+
+### Files Changed
+
+- `dashboard/index.html`
+- `data/model_portfolio_2026-06-03.csv`
+- `data/model_portfolio_latest.csv`
+- `data/model_portfolio_market_2026-07-02.csv`
+- `data/model_portfolio_market_2026-07-02_summary.txt`
+- `data/simulated_positions_2026-07-02.csv`
+- `data/simulated_positions_latest.csv`
+- `data/simulated_trades_2026-07-02.csv`
+- `progress.md`
+- `findings.md`
+- `.codex/PROJECT_CONTEXT.md`
+- iCloud Obsidian `台股量化基金.md`
+
 ## 2026-07-01 收盘日更
 
 ### Session Goal
