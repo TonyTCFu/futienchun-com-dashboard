@@ -11,6 +11,7 @@
 - 策略监控确认 `signal-pill sell=0`、可见 `建议卖出=0`，本轮无新的待确认调仓；已落账卖出标的没有继续红色建议卖出残留。
 - 正式重建后研究摘要关键数字仍为 `AI 供应链权重 33.00%`、`风险贡献 52.76%`、`风险-权重差 +19.76%`、`trade_count=2`；但策略结构变化行漂移为 `HHI 0.1609`、前三大权重 `61.92%`、有效持仓数 `6.22`、结构变化风险贡献 `52.78%`，已同步到 iCloud Obsidian `台股量化基金.md`。
 - 本轮 QA 初次失败点是 Obsidian 卡片缺少最新 Dashboard 摘要第 5 行；同步后重跑 `scripts/run_local_qa_checks.py` 已通过。
+- Workspace 日更提交已推送到 `origin`；部署仓库日更提交已推送到 `futienchun-com-dashboard`。Render 首页正文第 2 轮切到 `2026-07-02 / 2026-07-02`，公网 `signal-pill sell=0`、可见 `建议卖出=0`，`/healthz=200`。
 
 ## 2026-07-01 收盘日更
 
