@@ -16,6 +16,8 @@
 - 当前调仓日历为：最后回测调仓日 `2026-06-29`，预计下次回测调仓 `2026-07-09`，距下次还差 `5` 个共同交易日。
 - 策略监控显示待确认调仓 `0` 笔；`signal-pill sell=0`、可见 `建议卖出=0`，没有已落账标的仍显示红色建议卖出。
 - 已同步 Dashboard 研究摘要漂移到 QA 基线与 iCloud Obsidian `台股量化基金.md`：`AI 供应链权重 33.00%`、`风险贡献 52.97%`、`风险-权重差 +19.97%`、`trade_count=2`，策略结构变化行更新为 `HHI 0.1610`、前三大权重 `61.96%`、有效持仓数 `6.21`、结构变化风险贡献 `52.97%`。
+- Workspace 日更提交 `7ea152f` 已推送到 `origin`；部署仓库日更提交 `95e6edc` 已推送到 `futienchun-com-dashboard`。
+- 公网验证通过：`https://futienchun-com-dashboard.onrender.com/` 首页正文命中 `今日 Dashboard 更新日期：2026-07-03` 与 `行情/回测序列最新日期：2026-07-02`，公网 `signal-pill sell=0`、可见 `建议卖出=0`，`/healthz` 返回 `200`。
 
 ### Verification Log
 
@@ -24,6 +26,8 @@
 - 页面解析通过：`今日 Dashboard 更新日期=2026-07-03`、`行情/回测序列最新日期=2026-07-02`、`最后回测调仓日=2026-06-29`、`预计下次回测调仓=2026-07-09`、`距下次还差交易日=5`、`最后模拟盘执行日=2026-07-02`、`已落账模拟成交=2`。
 - 策略监控检查通过：`signal-pill sell=0`、可见 `建议卖出=0`；本轮无新的待确认调仓。
 - `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 scripts/run_local_qa_checks.py` 通过，输出 `/tmp/tw_quant_local_qa_summary.md` 与 `/tmp/tw_quant_local_qa_summary.json`。
+- Workspace 提交 `7ea152f` 已推送到 `origin`；部署仓库提交 `95e6edc` 已推送到 `futienchun-com-dashboard`。
+- 公网验证通过：Render 首页正文已切到 `2026-07-03 / 2026-07-02`，`/healthz` 为 `200`。
 
 ### Files Changed
 
