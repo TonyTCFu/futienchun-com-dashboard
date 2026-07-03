@@ -1,5 +1,17 @@
 # Loop Engineering Findings
 
+## 2026-07-03 收盘日更
+
+- 本轮继续在新 Obsidian Workspace 路径执行：`/Users/tonyfu/Library/Mobile Documents/iCloud~md~obsidian/Documents/Codex/projects/台股_稳健投资组合量化模型构建`，不是旧的本机项目目录。
+- 新 Workspace 当前没有 `.venv/bin/python`；正式重建继续使用系统 `python3` 搭配 `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages` 复用 user-site 依赖。
+- 7 月日更不能继续沿用旧 `--end 2026-06`，否则会把共同序列回退到 `2026-06-29` 并误写 6/29 历史产物；本轮已还原误写历史产物，正式命令改用 `--end 2026-07`，重建耗时 `real 41.32`。
+- Dashboard 今日更新日期已切到 `2026-07-03`，公开收盘价共同交易日维持 `2026-07-02`；正式刷新 `data/model_portfolio_market_2026-07-02.csv`，15 檔成功、缺失 0 檔。
+- 本轮 `--execute-simulated-trades` 对 `2026-07-02` 保持幂等，新增模拟成交 `0` 笔；最后模拟盘执行日仍为 `2026-07-02`，已落账 `2317` 卖出 `1` 股、`2303` 卖出 `22` 股，执行后 `2317` 剩 `2` 股、`2303` 剩 `85` 股。
+- 当前调仓日历为：最后回测调仓日 `2026-06-29`，预计下次回测调仓 `2026-07-09`，距下次还差 `5` 个共同交易日。
+- 策略监控确认 `signal-pill sell=0`、可见 `建议卖出=0`，本轮无新的待确认调仓；已落账卖出标的没有继续红色建议卖出残留。
+- 正式重建后研究摘要关键数字变为 `AI 供应链权重 33.00%`、`风险贡献 52.97%`、`风险-权重差 +19.97%`、`trade_count=2`；策略结构变化行漂移为 `HHI 0.1610`、前三大权重 `61.96%`、有效持仓数 `6.21`、结构变化风险贡献 `52.97%`，已同步到 QA 基线与 iCloud Obsidian `台股量化基金.md`。
+- 本地 QA 汇总通过：摘要同步、关键数字回归、Markdown 导出、旧格式 fixture 与临时 Dashboard fixture 均通过。
+
 ## 2026-07-02 收盘日更
 
 - 本轮继续在新 Obsidian Workspace 路径执行：`/Users/tonyfu/Library/Mobile Documents/iCloud~md~obsidian/Documents/Codex/projects/台股_稳健投资组合量化模型构建`，不是旧的本机项目目录。

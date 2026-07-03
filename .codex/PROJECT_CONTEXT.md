@@ -7,6 +7,10 @@
 ## 二、当前状态
 
 - 已完成静态风险仪表盘 MVP。
+- 2026-07-03 已在新 Obsidian Workspace 完成收盘日更：Dashboard 更新日期 `2026-07-03`，行情/回测序列最新日期 `2026-07-02`，最后回测调仓日 `2026-06-29`，预计下次回测调仓 `2026-07-09`，距下次还差 `5` 个共同交易日；本轮 `--execute-simulated-trades` 对 `2026-07-02` 保持幂等，新增模拟成交 `0` 笔，已落账模拟成交仍为 `2` 笔（`2317` 1 股、`2303` 22 股），策略监控 `signal-pill sell=0`、可见 `建议卖出=0`。
+- 2026-07-03 正式刷新 `data/model_portfolio_market_2026-07-02.csv` 与 summary，15 檔成功、缺失 0 檔；继续使用系统 `python3` 搭配 `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages`，未读取敏感配置、未调用券商下单。
+- 2026-07-03 已确认 7 月日更命令应使用 `--end 2026-07`；沿用旧 `--end 2026-06` 会把共同序列回退到 `2026-06-29`，本轮已还原误写的 6/29 历史产物。
+- 2026-07-03 Dashboard 研究摘要关键数字为 `AI 供应链权重 33.00%`、`风险贡献 52.97%`、`风险-权重差 +19.97%`、`trade_count=2`；QA 基线与 iCloud Obsidian `台股量化基金.md` 已同步。
 - 2026-07-02 已在新 Obsidian Workspace 完成收盘日更：Dashboard 更新日期 `2026-07-02`，行情/回测序列最新日期 `2026-07-02`，最后回测调仓日 `2026-06-29`，预计下次回测调仓 `2026-07-08`；本轮新增本地模拟卖出 `2` 笔（`2317` 1 股、`2303` 22 股），策略监控 `signal-pill sell=0`、可见 `建议卖出=0`。
 - 2026-07-02 正式生成 `data/model_portfolio_market_2026-07-02.csv` 与 summary，15 檔成功、缺失 0 檔；继续使用系统 `python3` 搭配 `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages`，未读取敏感配置、未调用券商下单。
 - 2026-07-02 Dashboard 研究摘要关键数字仍为 `AI 供应链权重 33.00%`、`风险贡献 52.76%`、`风险-权重差 +19.76%`、`trade_count=2`；策略结构变化行已同步到 iCloud Obsidian `台股量化基金.md`。
