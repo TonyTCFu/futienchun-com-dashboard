@@ -1,5 +1,22 @@
 # Loop Engineering Progress
 
+## 2026-07-10 每日更新恢复与缓存版本
+
+### Actions
+
+- 已确认停止日更的直接原因是 Codex automation `dashboard` 处于暂停状态；现已恢复为每日 `13:45`、新 iCloud Workspace、本地执行环境。
+- 自动化现要求在每次发布后验证公网正文、`/healthz` 与 `/version.json`，并确认首页 `ETag` / `X-Dashboard-Version` 与版本端点一致。
+- 新增项目级 `MEMORY.md`，记录共享 Workspace、本机敏感状态隔离、只读行情边界、日更与发布验收链路。
+- `scripts/serve_dashboard.py` 现以 `dashboard/index.html` 内容 SHA-256 作为发布缓存版本；首页维持禁止缓存响应，并返回 `ETag` 与 `X-Dashboard-Version`，另提供 `/version.json` 供不同设备核对当前版本。
+- 已按公开行情路径完成一次补跑：Dashboard 更新日期为 `2026-07-10`，当前可取得的共同行情/回测序列最新日期仍为 `2026-07-02`；模拟盘本轮新增成交 `0` 笔，已落账累计仍为 `2` 笔。
+
+### Verification Log
+
+- `python3 -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py` 通过。
+- 正式公开行情重建与 `--execute-simulated-trades` 完成；随后 `scripts/run_local_qa_checks.py --skip-dashboard-fixture` 通过。
+- 本地服务验证通过：`/healthz=ok`；首页响应包含 `Cache-Control: no-store`、`ETag`、`X-Dashboard-Version`；`/version.json` 返回同一 SHA-256 版本。
+- 未读取 `.env`、`.shioaji.local.env`、API Key 或 token，未调用券商下单、改单、撤单或账户交易接口。
+
 ## 2026-07-03 收盘日更
 
 ### Session Goal

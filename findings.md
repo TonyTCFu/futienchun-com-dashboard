@@ -1,5 +1,11 @@
 # Loop Engineering Findings
 
+## 2026-07-10 日更恢复与跨设备缓存一致性
+
+- 日更停摆不是行情模型或 Shioaji 凭证问题，而是 Codex automation `dashboard` 被暂停；恢复后保留每日 `13:45` 的收盘后执行节奏。
+- 跨设备看到旧页面的防线必须同时覆盖发布与 HTTP 响应：每次 Dashboard 内容改变都会产生新的 SHA-256 版本；首页以 `ETag` / `X-Dashboard-Version` 暴露该版本，并保持 `no-store`，`/version.json` 可用于正文与缓存版本验收。
+- 本轮公开行情重建已刷新 Dashboard 的生成日期，但公开数据共同序列仍止于 `2026-07-02`。这表示自动化和缓存版本链路已恢复，行情源的可用最新日仍需单独以当天发布结果为准，不得把页面生成日误报为行情日。
+
 ## 2026-07-03 收盘日更
 
 - 本轮继续在新 Obsidian Workspace 路径执行：`/Users/tonyfu/Library/Mobile Documents/iCloud~md~obsidian/Documents/Codex/projects/台股_稳健投资组合量化模型构建`，不是旧的本机项目目录。

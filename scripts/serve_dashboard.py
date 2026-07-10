@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import base64
+import hashlib
+import json
 import os
 import shlex
 import subprocess
@@ -64,6 +66,25 @@ class DashboardHandler(SimpleHTTPRequestHandler):
         self.send_header("X-Frame-Options", "DENY")
         super().end_headers()
 
+    @staticmethod
+    def _dashboard_version() -> dict[str, str | int]:
+        content = DEFAULT_INDEX.read_bytes()
+        digest = hashlib.sha256(content).hexdigest()
+        modified_at = datetime.fromtimestamp(DEFAULT_INDEX.stat().st_mtime).astimezone().isoformat(timespec="seconds")
+        return {
+            "version": digest,
+            "generated_at": modified_at,
+            "content_length": len(content),
+        }
+
+    def _send_dashboard_version(self) -> None:
+        payload = json.dumps(self._dashboard_version(), ensure_ascii=False).encode("utf-8")
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(payload)))
+        self.end_headers()
+        self.wfile.write(payload)
+
     def _send_plain(self, status: HTTPStatus, body: str) -> None:
         data = body.encode("utf-8")
         self.send_response(status)
@@ -105,6 +126,8 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             return self._serve_index()
         if path == "/healthz":
             return self._send_plain(HTTPStatus.OK, "ok\n")
+        if path == "/version.json":
+            return self._send_dashboard_version()
         return super().do_GET()
 
     def do_HEAD(self) -> None:  # noqa: N802
@@ -119,13 +142,23 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             self.send_header("Content-Length", "3")
             self.end_headers()
             return
+        if path == "/version.json":
+            payload = json.dumps(self._dashboard_version(), ensure_ascii=False).encode("utf-8")
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            return
         return super().do_HEAD()
 
     def _serve_index(self, head_only: bool = False) -> None:
         content = DEFAULT_INDEX.read_bytes()
+        version = hashlib.sha256(content).hexdigest()
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(content)))
+        self.send_header("ETag", f'"{version}"')
+        self.send_header("X-Dashboard-Version", version)
         self.end_headers()
         if not head_only:
             self.wfile.write(content)

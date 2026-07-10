@@ -36,6 +36,7 @@
 | 25. 第二十一轮关键数字回归检查 | complete | QA/Reviewer | 新增研究摘要关键数字回归检查，并接入本地 QA 汇总 |
 | 26. 第二十二轮公网部署与每日重建 | complete | Coordinator + Dashboard/Product + Data Pipeline | 将 Dashboard 挂到公网，并按固定时间自动用公开收盘价重建 |
 | 27. 第二十三轮公网免费实例上线 | complete | Coordinator + Dashboard/Product | 以免费实例公开上线 Dashboard，先满足公网读取，再视稳定性决定是否升级 |
+| 28. 每日更新恢复与缓存版本验收 | complete | Coordinator + QA | 已恢复 `dashboard` 自动化；公网首页提供内容版本与缓存验证端点 |
 
 ## Team Blueprint
 

@@ -6,6 +6,10 @@
 
 ## 二、当前状态
 
+- 2026-07-10 已恢复 Codex automation `dashboard`：每日 13:45 在新 iCloud Workspace 执行收盘更新。自动化完成定义现包含公网正文、`/healthz`、`/version.json` 和首页 `ETag` / `X-Dashboard-Version` 一致性验证。
+- 2026-07-10 新增项目级 `MEMORY.md`。`scripts/serve_dashboard.py` 对首页维持 `no-store`，并用 `dashboard/index.html` 的 SHA-256 作为可审计缓存版本；不同设备可通过 `/version.json` 确认所见版本。
+- 2026-07-10 补跑结果：Dashboard 生成日期 `2026-07-10`，当前可用行情/回测共同序列最新日期仍是 `2026-07-02`；`--execute-simulated-trades` 新增 `0` 笔，累计已落账 `2` 笔。不得将生成日期视为行情日期。
+
 - 已完成静态风险仪表盘 MVP。
 - 2026-07-03 已在新 Obsidian Workspace 完成收盘日更：Dashboard 更新日期 `2026-07-03`，行情/回测序列最新日期 `2026-07-02`，最后回测调仓日 `2026-06-29`，预计下次回测调仓 `2026-07-09`，距下次还差 `5` 个共同交易日；本轮 `--execute-simulated-trades` 对 `2026-07-02` 保持幂等，新增模拟成交 `0` 笔，已落账模拟成交仍为 `2` 笔（`2317` 1 股、`2303` 22 股），策略监控 `signal-pill sell=0`、可见 `建议卖出=0`。
 - 2026-07-03 正式刷新 `data/model_portfolio_market_2026-07-02.csv` 与 summary，15 檔成功、缺失 0 檔；继续使用系统 `python3` 搭配 `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages`，未读取敏感配置、未调用券商下单。
