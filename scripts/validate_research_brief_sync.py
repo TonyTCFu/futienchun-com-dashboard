@@ -44,8 +44,8 @@ def validate_sync(dashboard_path: Path, obsidian_note: Path) -> tuple[int, int]:
 
     required_fragments = [
         "## 七、最新研究摘要",
-        "AI 供应链权重 32.56%",
-        "风险贡献 52.45%",
+        "AI 供应链权重 32.55%",
+        "风险贡献 52.44%",
         "风险-权重差 +19.89%",
         "舊格式 2 筆",
         "不代表未来报酬预测",

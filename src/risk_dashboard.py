@@ -247,7 +247,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--offline-cache", action="store_true", help="只读取本地缓存，不请求 TWSE。")
     parser.add_argument("--rebalance-window", type=int, default=DEFAULT_REBALANCE_WINDOW, help="再平衡回测的滚动估计窗口，单位为交易日。")
     parser.add_argument("--rebalance-step", type=int, default=DEFAULT_REBALANCE_STEP, help="再平衡间隔，单位为交易日。")
-    parser.add_argument("--model-portfolio", action="store_true", help="生成手动模拟建仓模型盘，不会下单。")
+    parser.add_argument("--model-portfolio", action="store_true", help="生成虚拟模拟建仓模型盘，不会下单。")
     parser.add_argument("--model-build-date", default=DEFAULT_MODEL_BUILD_DATE, help="模型盘建仓日，格式 YYYY-MM-DD。")
     parser.add_argument(
         "--model-method",
@@ -264,7 +264,7 @@ def parse_args() -> argparse.Namespace:
         help="仅用于 multi-factor-shrink：提高 AI 供应链目标权重。moderate 约 33%%，strong 约 38%%。",
     )
     parser.add_argument("--model-output", type=Path, default=DEFAULT_MODEL_OUTPUT, help="模型盘 CSV 输出路径。")
-    parser.add_argument("--model-execution-orders", type=Path, help="手动建仓执行单 CSV；未指定时会自动读取 data/manual_build_orders_建仓日.csv。")
+    parser.add_argument("--model-execution-orders", type=Path, help="虚拟建仓执行单 CSV；未指定时会自动读取 data/manual_build_orders_建仓日.csv。")
     parser.add_argument("--model-market-values", type=Path, help="模型盘当日市值/盈亏 CSV；未指定时会自动读取 data/model_portfolio_market_建仓日.csv。")
     parser.add_argument("--execute-simulated-trades", action="store_true", help="将本轮模拟盘建议单落账为模拟成交，并更新模拟持仓 CSV；不会连接券商。")
     parser.add_argument("--simulated-trades-output", type=Path, help="模拟成交 CSV 路径；落账时写入，Dashboard 验证时可读取指定路径。")
@@ -1914,7 +1914,7 @@ def build_trade_signals(
             action = "观察"
             status = "observe"
             proposed_shares = None
-            reason = "本日模拟调仓已落账，当前不再列为待确认清单。"
+            reason = "本日模拟调仓已落账，当前不再列为待复核清单。"
 
         signals.append(
             TradeSignal(
@@ -3210,9 +3210,9 @@ def render_dashboard(
     legacy_batch_status = next((status for status in trade_batch_statuses if status.is_legacy), None)
     legacy_batch_text = f"舊格式 {legacy_batch_status.trade_count} 筆" if legacy_batch_status else "無舊格式紀錄"
     pending_batch_text = (
-        f"批次 {trade_batch_seq} 待確認 {len(actionable_signals)} 筆"
+        f"批次 {trade_batch_seq} 待復核 {len(actionable_signals)} 筆"
         if actionable_signals
-        else f"目前批次 {trade_batch_seq} 暫無待確認單"
+        else f"目前批次 {trade_batch_seq} 暫無待復核單"
     )
     if trade_batch_statuses:
         batch_rows = "\n".join(
@@ -3227,7 +3227,7 @@ def render_dashboard(
     else:
         batch_rows = '<tr><td colspan="5" class="empty-order-cell">本交易日尚無本地模擬成交 CSV 紀錄。</td></tr>'
     trade_batch_status_html = f"""
-      <div class="analysis-note"><b>模擬盤批次狀態小結：</b>目前批次為 {html.escape(trade_batch_seq)}；已寫入本地模擬成交 CSV 的批次：{html.escape(settled_batch_labels)}；舊格式紀錄：{html.escape(legacy_batch_text)}；目前待確認：{html.escape(pending_batch_text)}。頁面確認只保存在目前瀏覽器，真正寫入本地模擬成交 CSV 仍需執行 Python 主腳本。</div>
+      <div class="analysis-note"><b>模擬盤批次狀態小結：</b>目前批次為 {html.escape(trade_batch_seq)}；已寫入本地模擬成交 CSV 的批次：{html.escape(settled_batch_labels)}；舊格式紀錄：{html.escape(legacy_batch_text)}；目前待復核：{html.escape(pending_batch_text)}。收盤更新流程會用 Python 主腳本自動落帳本地模擬成交；頁面按鈕只做瀏覽器內復核標記。</div>
       <table class="metric-table compact-table">
         <thead><tr><th>已落帳批次</th><th>筆數</th><th>標的</th><th>方向</th><th>口徑</th></tr></thead>
         <tbody>{batch_rows}</tbody>
@@ -3243,20 +3243,20 @@ def render_dashboard(
             for signal in actionable_signals[:3]
         )
         if len(actionable_signals) > 3:
-            top_signal_items += f"<li>另有 {len(actionable_signals) - 3} 笔待确认调仓，详见下方建议单。</li>"
+            top_signal_items += f"<li>另有 {len(actionable_signals) - 3} 笔待复核调仓，详见下方建议单。</li>"
         trade_reason_summary = (
-            f"本轮有 {len(actionable_signals)} 笔待确认调仓：买入 {actionable_buy_count} 笔、卖出 {actionable_sell_count} 笔。"
-            "这些只是本地模拟盘复核事项，不会自动送出订单。"
+            f"本轮有 {len(actionable_signals)} 笔待复核调仓：买入 {actionable_buy_count} 笔、卖出 {actionable_sell_count} 笔。"
+            "这些会由收盘自动化落到本地模拟盘，不会送出券商订单。"
         )
-        trade_reason_boundary = "待确认单代表规则已触发模拟盘复核，但仍需用脚本落账才会写入本地 CSV。"
+        trade_reason_boundary = "待复核单代表规则已触发模拟盘动作；收盘自动化会用脚本写入本地 CSV，页面只保留复核状态。"
     elif settled_signal_count:
-        top_signal_items = "<li>本日触发过的模拟调仓已在本地 CSV 落账，当前页面不再重复列为待确认清单。</li>"
-        trade_reason_summary = f"本轮没有新的待确认调仓；已有 {settled_signal_count} 笔本日模拟调仓转为观察。"
-        trade_reason_boundary = "没有待确认单不代表风险解除；本轮是因为本日建议已通过脚本落账并转为观察。"
+        top_signal_items = "<li>本日触发过的模拟调仓已在本地 CSV 落账，当前页面不再重复列为待复核清单。</li>"
+        trade_reason_summary = f"本轮没有新的待复核调仓；已有 {settled_signal_count} 笔本日模拟调仓转为观察。"
+        trade_reason_boundary = "没有待复核单不代表风险解除；本轮是因为本日建议已通过脚本落账并转为观察。"
     else:
-        top_signal_items = "<li>本轮没有新的待确认调仓；持仓维持观察，等待价格、趋势、RSI 或连续天数重新触发。</li>"
-        trade_reason_summary = "本轮没有新的待确认调仓；当前更适合观察风险集中、回撤和压力情境。"
-        trade_reason_boundary = "没有待确认单不代表风险解除，只代表本轮没有标的同时满足买入/卖出阈值。"
+        top_signal_items = "<li>本轮没有新的待复核调仓；持仓维持观察，等待价格、趋势、RSI 或连续天数重新触发。</li>"
+        trade_reason_summary = "本轮没有新的待复核调仓；当前更适合观察风险集中、回撤和压力情境。"
+        trade_reason_boundary = "没有待复核单不代表风险解除，只代表本轮没有标的同时满足买入/卖出阈值。"
     taiex_snapshot = fetch_taiex_snapshot(dashboard_generated_date)
     if taiex_snapshot:
         taiex_change_class = "positive" if taiex_snapshot.change_points >= 0 else "negative"
@@ -3290,12 +3290,12 @@ def render_dashboard(
     update_actions = [
         f"已刷新公开收盘价路径，Dashboard 行情/回测序列最新日期为 {dashboard_data_end}。",
         f"已套用本地模型盘市值档 {portfolio_market_date}（{market_mode_text}），当前持仓市值 {format_twd(current_market_value)}，未实现盈亏 {format_twd(current_unrealized_pnl)}。",
-        f"已复核策略监控：待确认调仓 {len(actionable_signals)} 笔，已落账模拟成交 {execution_trade_count} 笔，红色卖出建议不会重复显示已落账标的。",
+        f"已复核策略监控：待复核调仓 {len(actionable_signals)} 笔，已落账模拟成交 {execution_trade_count} 笔，红色卖出建议不会重复显示已落账标的。",
     ]
     next_steps = [
         "下一交易日继续用公开收盘价刷新 Dashboard，并把公网首页正文作为发布完成标准。",
         f"继续观察是否走满 {backtest.step if backtest else DEFAULT_REBALANCE_STEP} 个共同交易日；当前预计下次回测调仓为 {estimated_next_rebalance_date}。",
-        "短期重点看 AI 供应链风险贡献是否继续高于权重，并复核新的待确认调仓是否需要本地模拟盘落账。",
+        "短期重点看 AI 供应链风险贡献是否继续高于权重，并复核新的模拟盘调仓是否已经自动落账。",
     ]
     update_summary_html = f"""
       <section id="update-summary" class="section panel">
@@ -3311,7 +3311,7 @@ def render_dashboard(
           {taiex_cards}
           <div class="card"><div class="metric">{html.escape(dashboard_data_end)}</div><p class="metric-label">行情/回测最新日</p></div>
           <div class="card"><div class="metric">{html.escape(portfolio_market_date)}</div><p class="metric-label">模型盘市值日</p></div>
-          <div class="card"><div class="metric">{len(actionable_signals)}</div><p class="metric-label">待确认调仓</p></div>
+          <div class="card"><div class="metric">{len(actionable_signals)}</div><p class="metric-label">待复核调仓</p></div>
         </div>
         <div class="table-grid">
           <div>
@@ -3373,7 +3373,7 @@ def render_dashboard(
         <div class="analysis-note"><b>策略结构变化结论：</b>{html.escape(strategy_structure_text)}</div>
 """
     research_report_html = f"""
-        <div class="analysis-note"><b>群组风险研究报告摘要：</b>以下文字用于研究记录和人工复核，可复制到报告或 Obsidian；内容只解释本地模型盘与风险归因，不构成投资建议、预测或券商委托；不会新增交易信号，不会写入模拟成交 CSV，也不连接券商。</div>
+        <div class="analysis-note"><b>群组风险研究报告摘要：</b>以下文字用于研究记录和自动化审计，可复制到报告或 Obsidian；内容只解释本地模型盘与风险归因，不构成投资建议、预测或券商委托；不会新增交易信号，也不连接券商。</div>
         {strategy_structure_html}
         <textarea class="research-report" readonly rows="7">{html.escape(research_report_text)}</textarea>
 """
@@ -3384,7 +3384,7 @@ def render_dashboard(
             <span class="eyebrow">Decision Brief</span>
             <h2>本轮风险归因与调仓摘要</h2>
           </div>
-          <span class="status-pill">{len(actionable_signals)} 笔待确认</span>
+          <span class="status-pill">{len(actionable_signals)} 笔待复核</span>
         </div>
         <div class="analysis-note"><b>主要风险：</b>收缩协方差下最大风险贡献来自 {html.escape(symbols[top_shrink_risk_index])}，贡献 {format_percent(shrink_rc[top_shrink_risk_index])}；最高相关资产对为 {html.escape(max_pair_text)}。这些项目用于识别同源风险，不代表个股买卖建议。</div>
         <div class="analysis-note"><b>压力情境：</b>规则压力测试下，普通协方差估计损失约 {format_percent(abs(sample_stress))}，收缩协方差估计损失约 {format_percent(abs(shrink_stress))}。这是解释型压力口径，不是未来预测。</div>
@@ -3479,7 +3479,7 @@ def render_dashboard(
 """
     if trade_signals:
         settled_signal_count = sum(1 for signal in trade_signals if "已落账" in signal.reason)
-        signal_status_text = f"{len(actionable_signals)} 笔待确认"
+        signal_status_text = f"{len(actionable_signals)} 笔待复核"
         if settled_signal_count:
             signal_status_text += f" / {settled_signal_count} 笔已落账"
         signal_rows = "\n".join(
@@ -3494,7 +3494,7 @@ def render_dashboard(
             for signal in trade_signals
         )
         signal_summary = (
-            f"本轮触发 {len(actionable_signals)} 笔手工建议单；未触发的标的只列为观察。"
+            f"本轮触发 {len(actionable_signals)} 笔虚拟盘动作；未触发的标的只列为观察。"
             if actionable_signals
             else "本轮没有触发新的买入或卖出建议，维持现有持仓观察。"
         )
@@ -3507,8 +3507,8 @@ def render_dashboard(
         </div>
         <span class="status-pill">{html.escape(signal_status_text)}</span>
       </div>
-      <p>{signal_summary} 表格只保留决策复核需要的核心栏位；趋势、RSI、量能和多因子分数仍在规则内部计算，只生成手工建议，不会自动下单。</p>
-      <div class="analysis-note"><b>訊號口徑：</b>「觀察」代表未進入本輪待處理清單；「建議買入 / 建議賣出」只代表本地模擬盤待確認，不會送到券商。若標的顯示「本日模擬調倉已落帳」，表示同一交易日已有本地 CSV 紀錄，系統會避免重複列為待確認清單。</div>
+      <p>{signal_summary} 表格只保留决策复核需要的核心栏位；趋势、RSI、量能和多因子分数仍在规则内部计算，只生成虚拟盘动作，不会连接券商。</p>
+      <div class="analysis-note"><b>訊號口徑：</b>「觀察」代表未進入本輪待處理清單；「建議買入 / 建議賣出」只代表本地模擬盤动作，不會送到券商。若標的顯示「本日模擬調倉已落帳」，表示同一交易日已有本地 CSV 紀錄，系統會避免重複列為待復核清單。</div>
       <div class="analysis-note"><b>本轮调仓解释：</b>{html.escape(trade_reason_summary)} {html.escape(trade_reason_boundary)}</div>
       <table class="metric-table signal-table">
         <colgroup>
@@ -3573,30 +3573,30 @@ def render_dashboard(
         default_trade_state_json = json.dumps(default_trade_state, ensure_ascii=False)
         if actionable_signals:
             manual_trade_rows = "\n".join(
-                f"<tr data-symbol=\"{html.escape(signal.symbol)}\" data-trade-id=\"{html.escape(signal.trade_id)}\"><td><span class=\"trade-status\" data-trade-status=\"{html.escape(signal.trade_id)}\">待确认</span></td><td>{'买入' if signal.status == 'buy' else '卖出'}</td><td>{html.escape(signal.symbol)}<div class=\"trade-id\">单号：{html.escape(signal.trade_id)}</div></td><td class=\"name-cell\"><span class=\"asset-name\">{html.escape(signal.name)}</span></td><td>{signal.latest_price:.2f}</td><td>{'' if signal.proposed_shares is None else f'{signal.proposed_shares:,}'}</td><td>{'' if signal.proposed_shares is None else format_twd(signal.latest_price * signal.proposed_shares)}</td><td>页面复核</td><td>脚本落账</td><td><button class=\"trade-button\" type=\"button\" data-trade-toggle=\"{html.escape(signal.trade_id)}\">页面标记已确认</button></td></tr>"
+                f"<tr data-symbol=\"{html.escape(signal.symbol)}\" data-trade-id=\"{html.escape(signal.trade_id)}\"><td><span class=\"trade-status\" data-trade-status=\"{html.escape(signal.trade_id)}\">待复核</span></td><td>{'买入' if signal.status == 'buy' else '卖出'}</td><td>{html.escape(signal.symbol)}<div class=\"trade-id\">单号：{html.escape(signal.trade_id)}</div></td><td class=\"name-cell\"><span class=\"asset-name\">{html.escape(signal.name)}</span></td><td>{signal.latest_price:.2f}</td><td>{'' if signal.proposed_shares is None else f'{signal.proposed_shares:,}'}</td><td>{'' if signal.proposed_shares is None else format_twd(signal.latest_price * signal.proposed_shares)}</td><td>自动流程</td><td>CSV 落账</td><td><button class=\"trade-button\" type=\"button\" data-trade-toggle=\"{html.escape(signal.trade_id)}\">页面标记已复核</button></td></tr>"
                 for signal in actionable_signals
             )
         else:
-            manual_trade_rows = '<tr><td colspan="10" class="empty-order-cell">目前没有待确认的模拟调仓单。初始建仓单已归入持仓与盈亏统计；若本日建议已通过脚本落账，会从待确认清单移除，并反映到模拟持仓。若策略监控表仍有观察标的，请看触发原因栏；它们通常是连续天数、趋势、RSI、量能或建仓后报酬尚未同时达标。</td></tr>'
+            manual_trade_rows = '<tr><td colspan="10" class="empty-order-cell">目前没有待复核的模拟调仓单。初始建仓单已归入持仓与盈亏统计；若本日建议已通过自动脚本落账，会从待复核清单移除，并反映到模拟持仓。若策略监控表仍有观察标的，请看触发原因栏；它们通常是连续天数、趋势、RSI、量能或建仓后报酬尚未同时达标。</td></tr>'
         manual_trade_html = f"""
     <section id="manual-trading" class="section panel">
       <div class="section-heading">
         <div>
           <span class="eyebrow">Paper Portfolio Review</span>
-          <h2>模拟盘调仓确认</h2>
+          <h2>模拟盘自动执行记录</h2>
         </div>
         <div class="trade-actions">
-          <button id="mark-all-trades" class="trade-button primary" type="button">全部标记完成</button>
+          <button id="mark-all-trades" class="trade-button primary" type="button">全部标记已复核</button>
           <button id="reset-trade-status" class="trade-button" type="button">重置状态</button>
         </div>
       </div>
-      <p>这里是本地模拟盘调仓清单。页面按钮只会在当前浏览器记录检查状态，不会连接券商、不送出真实订单；真正落成 CSV 只由 Python 主脚本的 <code>--execute-simulated-trades</code> 完成。</p>
+      <p>这里是本地模拟盘调仓审计清单。收盘自动化会带 <code>--execute-simulated-trades</code> 把动作写入本地 CSV；页面按钮只在当前浏览器记录复核状态，不连接券商、不送出真实订单。</p>
 {trade_batch_status_html}
       <table class="metric-table">
-        <thead><tr><th>状态</th><th>方向</th><th>代码</th><th>名称</th><th>参考价</th><th>股数</th><th>估算金额</th><th>确认</th><th>记录</th><th>操作</th></tr></thead>
+        <thead><tr><th>状态</th><th>方向</th><th>代码</th><th>名称</th><th>参考价</th><th>股数</th><th>估算金额</th><th>执行</th><th>记录</th><th>复核</th></tr></thead>
         <tbody>{manual_trade_rows}</tbody>
       </table>
-      <p class="footer-note">执行建议：先在本页面逐笔复核，再由脚本写入本地模拟成交 CSV。默认批次为 01，同一交易日、同一标的、同一方向重复落账会保持幂等；只有明确使用新的模拟成交批次号时，才视为同日分批。点击“重置状态”只恢复浏览器里的检查状态，不会送出、撤回或修改任何真实订单。</p>
+      <p class="footer-note">执行规则：收盘流程自动写入本地模拟成交 CSV。默认批次为 01，同一交易日、同一标的、同一方向重复落账会保持幂等；只有明确使用新的模拟成交批次号时，才视为同日分批。点击“重置状态”只恢复浏览器里的复核状态，不会送出、撤回或修改任何真实订单。</p>
     </section>
 """
         market_mode_label = (
@@ -3628,7 +3628,7 @@ def render_dashboard(
         <div class="card"><div class="metric">{format_twd(current_market_total)}</div><p class="metric-label">当前持仓市值</p></div>
         <div class="card"><div class="metric {'positive' if current_pnl_total >= 0 else 'negative'}">{format_twd(current_pnl_total)}</div><p class="metric-label">未实现盈亏</p></div>
         <div class="card"><div class="metric {'positive' if current_pnl_total >= 0 else 'negative'}">{format_percent(current_pnl_pct, signed=True)}</div><p class="metric-label">未实现盈亏率</p></div>
-        <div class="card"><div class="metric">{execution_status}</div><p class="metric-label">手动执行价状态</p></div>
+        <div class="card"><div class="metric">{execution_status}</div><p class="metric-label">虚拟执行价状态</p></div>
         <div class="card"><div class="metric">{model_portfolio.execution_date}</div><p class="metric-label">计划建仓日</p></div>
         <div class="card"><div class="metric">{format_twd(model_portfolio.remaining_cash)}</div><p class="metric-label">买进后剩余现金</p></div>
         <div class="card"><div class="metric">{format_twd(total_commission)}</div><p class="metric-label">买进手续费估算</p></div>
@@ -3646,8 +3646,8 @@ def render_dashboard(
     else:
         model_html = """
     <section class="section panel">
-      <h2>手动模型盘建仓</h2>
-      <p>本轮未生成模型盘。若要生成虚拟建仓建议，请使用 <code>--model-portfolio</code> 手动触发。</p>
+      <h2>虚拟模型盘建仓</h2>
+      <p>本轮未生成模型盘。若要生成虚拟建仓建议，请使用 <code>--model-portfolio</code> 触发。</p>
     </section>
 """
     if model_portfolio:
@@ -3660,7 +3660,7 @@ def render_dashboard(
         execution_hint = (
             "录入今日开盘价或实际成交价后，再换算整数股。"
             if model_portfolio.execution_price_status == "pending_open_price"
-            else "已按手动建仓单建立虚拟持仓；证券交易税不预留，只在卖出时估算。"
+            else "已按虚拟建仓单建立模拟持仓；证券交易税不预留，只在卖出时估算。"
         )
         total_buy_cost = sum(position.total_buy_cost if position.total_buy_cost is not None else position.market_value or 0.0 for position in model_portfolio.positions)
         total_commission = sum(position.buy_commission or 0.0 for position in model_portfolio.positions)
@@ -3694,7 +3694,7 @@ def render_dashboard(
           <div class="split-row"><span>收盘持仓市值</span><b>{format_twd(current_market_total)}</b></div>
           <div class="split-row"><span>未实现盈亏</span><b>{format_twd(current_pnl_total)}</b></div>
           <div class="split-row"><span>盈亏率</span><b>{format_percent(current_pnl_pct, signed=True)}</b></div>
-          <div class="split-row"><span>待确认调仓</span><b>{len(actionable_signals)} 笔</b></div>
+          <div class="split-row"><span>待复核调仓</span><b>{len(actionable_signals)} 笔</b></div>
           <div class="split-row"><span>本日模拟成交</span><b>{execution_trade_count} 笔</b></div>
         </div>
         <div class="side-card">
@@ -3702,7 +3702,7 @@ def render_dashboard(
           <div class="split-row"><span>估计窗口</span><b>{backtest.window if backtest else DEFAULT_REBALANCE_WINDOW} 日</b></div>
           <div class="split-row"><span>检查间隔</span><b>{backtest.step if backtest else DEFAULT_REBALANCE_STEP} 日</b></div>
           <div class="split-row"><span>调仓次数</span><b>{backtest.rebalance_count if backtest else 0}</b></div>
-          <p>建议每月两次人工复核，只有偏离目标权重或风险状态明显变化时才交易。</p>
+          <p>收盘自动化每个交易日检查；只有偏离目标权重或风险状态明显变化时，才写入本地虚拟盘调仓记录。</p>
         </div>
         <div class="side-card">
           <p class="eyebrow-label">建仓执行清单</p>
@@ -3737,8 +3737,8 @@ def render_dashboard(
       <section id="execution-check" class="check-panel" aria-live="polite">
         <div class="section-heading">
           <div>
-            <span class="eyebrow">Manual Execution Check</span>
-            <h2>手动执行检查</h2>
+            <span class="eyebrow">Execution Review</span>
+            <h2>自动执行复核</h2>
           </div>
           <span class="status-pill">{html.escape(model_portfolio.execution_price_status)}</span>
         </div>
@@ -3748,7 +3748,7 @@ def render_dashboard(
           <div class="check-item pass"><b>资金使用</b><span>目标建仓 {format_percent(model_portfolio.invest_ratio)}，买进总成本 {format_twd(total_buy_cost_check)}，剩余现金 {format_twd(model_portfolio.remaining_cash)}。</span></div>
           <div class="check-item pass"><b>交易税口径</b><span>买进证券交易税 {format_twd(total_buy_tax)}；不预留证交税，未来卖出时再估算。</span></div>
           <div class="check-item {'pass' if current_market_total_check else 'warn'}"><b>今日盈亏</b><span>{market_check_status}，持仓市值 {format_twd(current_market_total_check)}，未实现盈亏 {format_twd(current_pnl_total_check)}（{format_percent(current_pnl_pct_check, signed=True)}）。</span></div>
-          <div class="check-item pass"><b>后续节奏</b><span>60 日估计窗口、7 日检查间隔；先人工复核，暂不自动下单。</span></div>
+          <div class="check-item pass"><b>后续节奏</b><span>60 日估计窗口、7 日检查间隔；本地虚拟盘自动落账，实盘券商端不下单。</span></div>
         </div>
       </section>
 """
@@ -3782,22 +3782,25 @@ def render_dashboard(
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>台灣股市Codex</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23182728'/%3E%3Cpath d='M18 42h28M22 34l7-8 7 5 8-12' fill='none' stroke='%23f8faf9' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
   <style>
     :root {{
-      --bg: #f4f8f6;
+      --bg: #f5f7f8;
       --panel: #ffffff;
-      --panel-soft: #f8fbf9;
-      --line: #dce6e1;
-      --line-strong: #c9d8d2;
-      --ink: #1e2f2d;
-      --muted: #6b7d78;
-      --green: #0f8f76;
-      --green-soft: #e8f5f1;
-      --red: #c94444;
-      --red-soft: #fff0f0;
-      --amber: #b86b00;
-      --orange: #c66b00;
-      --shadow: 0 18px 42px rgba(31, 58, 50, 0.08);
+      --panel-soft: #f8faf9;
+      --line: #dde5e4;
+      --line-strong: #c7d2d0;
+      --ink: #182728;
+      --muted: #647273;
+      --green: #0b7f6d;
+      --green-soft: #e8f4f1;
+      --blue: #2563a8;
+      --blue-soft: #edf4fb;
+      --red: #b84040;
+      --red-soft: #fff1f1;
+      --amber: #b7791f;
+      --amber-soft: #fff7e8;
+      --shadow: 0 14px 36px rgba(24, 39, 40, 0.07);
     }}
     * {{ box-sizing: border-box; }}
     html {{ scroll-behavior: smooth; }}
@@ -3822,7 +3825,7 @@ def render_dashboard(
       top: 18px;
       height: calc(100vh - 36px);
       border: 1px solid var(--line);
-      background: var(--panel);
+      background: rgba(255, 255, 255, 0.92);
       border-radius: 8px;
       padding: 14px 10px;
       box-shadow: var(--shadow);
@@ -3836,7 +3839,7 @@ def render_dashboard(
       place-items: center;
       color: #fff;
       font-weight: 800;
-      background: var(--green);
+      background: var(--ink);
     }}
     .nav-item {{
       display: grid;
@@ -3847,7 +3850,7 @@ def render_dashboard(
       border-radius: 8px;
       font-size: 11px;
     }}
-    .nav-item.active {{ color: var(--green); background: var(--green-soft); font-weight: 700; }}
+    .nav-item.active {{ color: var(--blue); background: var(--blue-soft); font-weight: 700; }}
     .nav-icon {{ font-size: 17px; line-height: 1; }}
     .app-main {{ min-width: 0; }}
     .topbar {{
@@ -3877,7 +3880,7 @@ def render_dashboard(
       border-radius: 8px;
       padding: 9px 12px;
       color: #fff;
-      background: var(--green);
+      background: var(--ink);
       font-weight: 700;
       cursor: pointer;
     }}
@@ -3890,7 +3893,7 @@ def render_dashboard(
       margin: -2px 0 14px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: #ffffff;
+      background: rgba(255, 255, 255, 0.96);
       box-shadow: var(--shadow);
       padding: 14px;
     }}
@@ -3908,8 +3911,8 @@ def render_dashboard(
     }}
     .check-item b {{ display: block; margin-bottom: 4px; color: var(--text); }}
     .check-item span {{ color: var(--muted); font-size: 12px; line-height: 1.45; }}
-    .check-item.pass {{ border-color: rgba(36, 128, 105, 0.28); background: var(--green-soft); }}
-    .check-item.warn {{ border-color: rgba(190, 112, 37, 0.28); background: #fff8ee; }}
+    .check-item.pass {{ border-color: rgba(11, 127, 109, 0.24); background: var(--green-soft); }}
+    .check-item.warn {{ border-color: rgba(183, 121, 31, 0.24); background: var(--amber-soft); }}
     .trade-actions {{
       display: flex;
       gap: 8px;
@@ -3944,8 +3947,8 @@ def render_dashboard(
       border-radius: 999px;
       font-size: 12px;
       font-weight: 800;
-      background: #fff8ee;
-      color: #9b5c17;
+      background: var(--amber-soft);
+      color: #89520f;
     }}
     .trade-status.done {{
       background: var(--green-soft);
@@ -3984,7 +3987,7 @@ def render_dashboard(
       color: var(--muted);
       font-weight: 700;
       text-align: center;
-      background: #f8fbf9;
+      background: var(--panel-soft);
     }}
     .strategy-list {{
       display: grid;
@@ -4002,22 +4005,22 @@ def render_dashboard(
     .asset-chip {{
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: var(--panel);
+      background: rgba(255, 255, 255, 0.96);
       padding: 9px 10px;
       min-height: 54px;
-      box-shadow: 0 6px 18px rgba(31,58,50,0.04);
+      box-shadow: 0 6px 18px rgba(24, 39, 40, 0.04);
     }}
     .asset-chip b {{ display: block; font-size: 13px; margin-bottom: 3px; }}
     .asset-chip span {{ display: block; color: var(--muted); font-size: 11px; line-height: 1.25; }}
     .hero, .panel, .chart, .side-card {{
       border: 1px solid var(--line);
-      background: var(--panel);
+      background: rgba(255, 255, 255, 0.96);
       border-radius: 8px;
       box-shadow: var(--shadow);
     }}
     .hero {{ padding: 18px; margin-bottom: 14px; }}
     .hero-content {{ display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: stretch; }}
-    .eyebrow {{ color: var(--green); font-size: 12px; font-weight: 800; margin-bottom: 8px; }}
+    .eyebrow {{ color: var(--blue); font-size: 12px; font-weight: 800; margin-bottom: 8px; }}
     .lead {{ color: var(--muted); line-height: 1.6; max-width: 760px; }}
     .insight-strip, .metric-grid {{
       display: grid;
@@ -4062,21 +4065,21 @@ def render_dashboard(
     table {{ width: 100%; border-collapse: collapse; background: var(--panel); }}
     .metric-table {{ margin-top: 12px; }}
     th, td {{ padding: 10px 9px; border-bottom: 1px solid #edf2ef; text-align: left; font-size: 12px; vertical-align: middle; }}
-    th {{ color: var(--muted); background: var(--panel-soft); font-size: 11px; font-weight: 800; }}
-    tr:hover td {{ background: #fbfdfc; }}
+    th {{ color: var(--muted); background: #f3f6f6; font-size: 11px; font-weight: 800; }}
+    tr:hover td {{ background: #f8fbfb; }}
     .risk-list {{ display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }}
-    .risk-list li {{ padding: 11px 12px; border: 1px solid #f0d3d3; border-radius: 8px; color: #7e2b2b; background: var(--red-soft); font-size: 12px; line-height: 1.45; }}
+    .risk-list li {{ padding: 11px 12px; border: 1px solid #ead3d3; border-radius: 8px; color: #7e2b2b; background: var(--red-soft); font-size: 12px; line-height: 1.45; }}
     .analysis-note {{
       margin: 0 0 10px;
       padding: 11px 12px;
-      border: 1px solid rgba(36, 128, 105, 0.18);
+      border: 1px solid rgba(37, 99, 168, 0.16);
       border-radius: 8px;
-      background: var(--green-soft);
+      background: var(--blue-soft);
       color: var(--ink);
       font-size: 13px;
       line-height: 1.6;
     }}
-    .analysis-note b {{ color: var(--green); }}
+    .analysis-note b {{ color: var(--blue); }}
     .section-toolbar {{
       display: flex;
       justify-content: space-between;
@@ -4099,9 +4102,9 @@ def render_dashboard(
       white-space: pre-wrap;
       margin: 0;
       padding: 14px;
-      border: 1px solid #dce6e1;
+      border: 1px solid var(--line);
       border-radius: 8px;
-      background: #f8fbf9;
+      background: var(--panel-soft);
       color: var(--ink);
       font: 13px/1.7 "PingFang TC", "Microsoft JhengHei", sans-serif;
       resize: vertical;
@@ -4141,7 +4144,7 @@ def render_dashboard(
     .asset-name {{ display: inline-block; white-space: nowrap; }}
     .footer-note {{ margin-top: 12px; font-size: 12px; color: var(--muted); }}
     .issues ul {{ margin: 0; padding-left: 18px; color: var(--muted); }}
-    code {{ color: var(--green); background: var(--green-soft); padding: 2px 5px; border-radius: 5px; }}
+    code {{ color: var(--blue); background: var(--blue-soft); padding: 2px 5px; border-radius: 5px; }}
     .execution-panel {{
       position: sticky;
       top: 18px;
@@ -4153,9 +4156,9 @@ def render_dashboard(
       padding-right: 2px;
     }}
     .side-card {{ padding: 14px; }}
-    .side-card.warning {{ background: #fff7f7; border-color: #f0cdcd; }}
+    .side-card.warning {{ background: #fff8f4; border-color: #efd5c0; }}
     .big-risk {{ font-size: 28px; font-weight: 900; margin-bottom: 8px; }}
-    .compact-status {{ color: var(--red); font-size: 20px; font-weight: 900; margin-bottom: 8px; }}
+    .compact-status {{ color: var(--amber); font-size: 20px; font-weight: 900; margin-bottom: 8px; }}
     .split-row {{
       display: flex;
       justify-content: space-between;
@@ -4191,12 +4194,16 @@ def render_dashboard(
       .topbar {{ display: block; }}
       .top-actions {{ margin-top: 10px; flex-wrap: wrap; }}
       .asset-tabs, .grid, .metric-grid, .insight-strip, .risk-list, .table-grid {{ grid-template-columns: 1fr; }}
+      .panel {{ max-width: 100%; overflow-x: auto; }}
+      .table-grid, .table-grid > * {{ min-width: 0; }}
       .chart {{ padding: 6px; }}
+      .chart, .js-plotly-plot, .plot-container, .svg-container {{ max-width: 100% !important; }}
       table {{ display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }}
       .metric-table {{ min-width: 720px; }}
       .compact-table {{ min-width: 620px; }}
       .metric-table th, .metric-table td {{ white-space: nowrap; }}
       .metric-table td:last-child, .metric-table th:last-child {{ white-space: normal; }}
+      .issues li {{ overflow-wrap: anywhere; }}
     }}
   </style>
 </head>
@@ -4225,7 +4232,7 @@ def render_dashboard(
           <span>行情最新 {html.escape(dashboard_data_end)}</span>
           <span>估计窗口 {backtest.window if backtest else DEFAULT_REBALANCE_WINDOW} 日</span>
           <span>调仓间隔 {backtest.step if backtest else DEFAULT_REBALANCE_STEP} 日</span>
-          <button id="execution-check-button" class="action-button" type="button" aria-expanded="false" aria-controls="execution-check">手动执行检查</button>
+          <button id="execution-check-button" class="action-button" type="button" aria-expanded="false" aria-controls="execution-check">执行复核</button>
         </div>
       </div>
 {execution_check_html}
@@ -4235,7 +4242,7 @@ def render_dashboard(
         <div class="hero-content">
           <div>
             <div class="eyebrow">台灣股市穩健量化引擎</div>
-            <p class="lead">本仪表盘比较普通样本协方差与收缩协方差下的最小方差组合，并把手动模型盘执行状态固定在右侧，方便从研究结果走到建仓与复核。</p>
+            <p class="lead">本仪表盘比较普通样本协方差与收缩协方差下的最小方差组合，并把虚拟盘执行状态固定在右侧，方便从研究结果走到自动落账与复核。</p>
             <div class="insight-strip">
               <div class="insight"><b>最高相关资产对</b><span>{html.escape(max_pair_text)}</span></div>
               <div class="insight"><b>集中度变化</b><span>{concentration_delta * 100:+.2f}%</span></div>
@@ -4337,7 +4344,7 @@ def render_dashboard(
         button.addEventListener("click", () => {{
           const isOpen = panel.classList.toggle("is-open");
           button.setAttribute("aria-expanded", String(isOpen));
-          button.textContent = isOpen ? "收起执行检查" : "手动执行检查";
+          button.textContent = isOpen ? "收起执行复核" : "执行复核";
           if (isOpen) {{
             panel.scrollIntoView({{ behavior: "smooth", block: "start" }});
           }}
@@ -4359,9 +4366,9 @@ def render_dashboard(
         const status = document.querySelector(`[data-trade-status="${{tradeId}}"]`);
         const toggle = document.querySelector(`[data-trade-toggle="${{tradeId}}"]`);
         if (!status || !toggle) return;
-        status.textContent = done ? "页面已确认" : "待确认";
+        status.textContent = done ? "页面已复核" : "待复核";
         status.classList.toggle("done", done);
-        toggle.textContent = done ? "改回待确认" : "页面标记已确认";
+        toggle.textContent = done ? "改回待复核" : "页面标记已复核";
         toggle.classList.toggle("done", done);
         document.querySelectorAll(`tr[data-trade-id="${{tradeId}}"]`).forEach((row) => {{
           row.classList.toggle("trade-done", done);
@@ -4624,7 +4631,7 @@ def main() -> None:
                     execution_orders=execution_orders,
                     market_values=market_values,
                 )
-            issues.append(DataIssue("MODEL_PORTFOLIO", f"已生成手动模型盘：{display_path(args.model_output)}"))
+            issues.append(DataIssue("MODEL_PORTFOLIO", f"已生成虚拟模型盘：{display_path(args.model_output)}"))
         except Exception as exc:
             write_model_portfolio_status_csv(
                 output_path=args.model_output,
@@ -4632,7 +4639,7 @@ def main() -> None:
                 method=args.model_method,
                 message=str(exc),
             )
-            issues.append(DataIssue("MODEL_PORTFOLIO", f"手动模型盘未生成：{exc}"))
+            issues.append(DataIssue("MODEL_PORTFOLIO", f"虚拟模型盘未生成：{exc}"))
 
     render_dashboard(
         output=args.output,

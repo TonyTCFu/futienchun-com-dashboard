@@ -8,8 +8,10 @@
 
 - 2026-07-13 已完成自动化空跑复盘：`dashboard` 自动化在 13:46 触发后约 17 分钟结束，但 `last_agent_message=null`，没有执行命令、修改文件或发布公网；根因归类为自动化执行层空跑。
 - 2026-07-13 已新增补偿自动化 `dashboard-4`（工作日 16:30），用于检测 Dashboard 过期、主自动化空跑或公网仍旧，并在需要时自动补跑正式交易日日更。
-- 2026-07-13 手动补跑已按 `public-close + market-mode close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades` 完成，本地 Dashboard 快照时间为 `2026-07-13T21:39:04`，但公开收盘价共同交易日仍为 `2026-07-09`；不得把补跑时间误报为行情日期。
-- 2026-07-13 研究摘要 QA 基线已同步为 `AI 供应链权重 32.56%`、`风险贡献 52.45%`、`风险-权重差 +19.89%`、`trade_count=2`；`scripts/run_local_qa_checks.py --skip-dashboard-fixture` 通过。
+- 2026-07-13 手动补跑已按 `public-close + market-mode close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades` 完成，本地 Dashboard 快照时间为 `2026-07-13T22:11:53`，行情/回测最新日与模型盘市值日均为 `2026-07-13`。
+- 2026-07-13 虚拟盘自动落账 `3` 笔卖出：`2317` 1 股、`2454` 1 股、`2412` 164 股；执行后待复核调仓 `0` 笔，`signal-pill sell=0`、可见 `建议卖出=0`。页面复核按钮只写浏览器状态，不控制 CSV 落账。
+- 2026-07-13 Dashboard 研究摘要 QA 基线已同步为 `AI 供应链权重 32.55%`、`风险贡献 52.44%`、`风险-权重差 +19.89%`、`trade_count=2`；`scripts/run_local_qa_checks.py --skip-dashboard-fixture` 通过。
+- 2026-07-13 Dashboard 已完成视觉舒适度修正：浅色工作台配色、自动执行文案、内嵌 favicon、手机表格面板内横向滑动；Playwright 验证桌面与手机渲染，手机 `docWidth=clientWidth=390` 且控制台无错误。
 - 2026-07-10 已恢复 Codex automation `dashboard`：每日 13:45 在新 iCloud Workspace 执行收盘更新。自动化完成定义现包含公网正文、`/healthz`、`/version.json` 和首页 `ETag` / `X-Dashboard-Version` 一致性验证。
 - 2026-07-10 新增项目级 `MEMORY.md`。`scripts/serve_dashboard.py` 对首页维持 `no-store`，并用 `dashboard/index.html` 的 SHA-256 作为可审计缓存版本；不同设备可通过 `/version.json` 确认所见版本。
 - 2026-07-10 补跑结果：Dashboard 生成日期 `2026-07-10`，当前可用行情/回测共同序列最新日期仍是 `2026-07-02`；`--execute-simulated-trades` 新增 `0` 笔，累计已落账 `2` 笔。不得将生成日期视为行情日期。

@@ -7,16 +7,18 @@
 - 已确认 `dashboard` 自动化在 2026-07-13 13:46 被触发，但会话只记录 user message 与 `task_complete`，`last_agent_message=null`，没有执行命令、修改文件、提交或公网发布；根因归类为自动化执行层空跑，不是行情脚本或 TWSE 数据问题。
 - 已新增补偿自动化 `dashboard-4`（`台股 Dashboard 更新漏跑补偿`），工作日 16:30 复核 Dashboard 是否过期；若主自动化空跑、产物未变或公网仍旧，会按正式交易日日更流程补跑并输出失败原因。
 - 已手动按正式口径补跑：`public-close + market-mode close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades`，未读取 `.env`、`.shioaji.local.env`、API key 或 token，未调用券商下单。
-- 本轮重建成功，但公开收盘价共同交易日仍停在 `2026-07-09`；Dashboard 快照时间更新为 `2026-07-13T21:39:04`，行情/回测最新日为 `2026-07-09`，正式刷新 `data/model_portfolio_market_2026-07-09.csv` 与 summary，15 檔成功、缺失 0 檔。
-- 模拟盘对 `2026-07-09` 保持幂等，新增模拟成交 `0` 笔；既有 `data/simulated_trades_2026-07-09.csv` 仍为 2 笔卖出：`2317` 卖出 1 股、`2454` 卖出 1 股。
-- 已同步 Dashboard 研究摘要漂移到 QA 基线与 iCloud Obsidian `台股量化基金.md`：`AI 供应链权重 32.56%`、`风险贡献 52.45%`、`风险-权重差 +19.89%`、`trade_count=2`。
+- 最终正式重建已取得 `2026-07-13` 公开收盘价；Dashboard 快照时间更新为 `2026-07-13T22:11:53`，行情/回测最新日为 `2026-07-13`，正式刷新 `data/model_portfolio_market_2026-07-13.csv` 与 summary，14 檔成功、缺失 0 檔。
+- 虚拟盘已自动落账 `2026-07-13` 模拟成交 `3` 笔：`2317` 卖出 1 股、`2454` 卖出 1 股、`2412` 卖出 164 股；执行后待复核调仓 `0` 笔，`signal-pill sell=0`、可见 `建议卖出=0`。
+- 已把 Dashboard 视觉改成更柔和的浅色工作台，并把“模拟盘调仓确认 / 手动复核”语义改为“模拟盘自动执行记录 / 页面复核审计”；本地虚拟盘由 `--execute-simulated-trades` 自动写 CSV，页面按钮只记录浏览器复核状态，不连接券商、不送出实盘订单。
+- 已同步 Dashboard 研究摘要漂移到 QA 基线与 iCloud Obsidian `台股量化基金.md`：`AI 供应链权重 32.55%`、`风险贡献 52.44%`、`风险-权重差 +19.89%`、`trade_count=2`。
 
 ### Verification Log
 
 - `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py` 通过。
 - 正式重建完成：`/usr/bin/time -p` 实测 `real 90.19`，成功生成正式 `dashboard/index.html`。
-- 页面解析通过：`更新日期=2026-07-09`、`快照时间=2026-07-13T21:39:04`、`回测最新日=2026-07-09`、`DAILY_MARKET=data/model_portfolio_market_2026-07-09.csv`、`signal-pill sell=0`、可见 `建议卖出=0`。
+- 页面解析通过：`更新日期=2026-07-13`、`快照时间=2026-07-13T22:11:53`、`回测最新日=2026-07-13`、`本日模拟成交=3 笔`、`待复核调仓=0 笔`、`signal-pill sell=0`、可见 `建议卖出=0`。
 - `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 scripts/run_local_qa_checks.py --skip-dashboard-fixture` 通过，输出 `/tmp/tw_quant_local_qa_summary.md` 与 `/tmp/tw_quant_local_qa_summary.json`。
+- Playwright 视觉验证通过：桌面 `1440x1100` 与手机 `390x844` 均可渲染；手机 `docWidth=390/clientWidth=390`，控制台 `0 errors / 0 warnings`。
 
 ## 2026-07-10 每日更新恢复与缓存版本
 
