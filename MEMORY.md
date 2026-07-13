@@ -15,12 +15,19 @@ This file preserves durable project context for the Taiwan equity risk dashboard
 ## Operations
 
 - The recurring automation id is `dashboard`, named `台股 Dashboard 每日收盘更新`, and runs against this Workspace after Taiwan market close.
+- The watchdog automation id is `dashboard-4`, named `台股 Dashboard 更新漏跑补偿`, and runs on weekdays at 16:30 Asia/Shanghai to detect stale or empty daily runs and retry the full trading-day update when needed.
 - Each daily run must update `dashboard/index.html`, refresh the paper-portfolio artifacts when applicable, push the deployment repository, and verify the public URL.
 - The public server sends no-cache headers and a content-derived `ETag` / `X-Dashboard-Version`. A changed Dashboard content hash is the release cache version, allowing every device to revalidate the current release.
 - For month boundaries, update the `--end` window to the current month. Keeping an old month can roll the common price series backward.
+- The daily automation must be gated by the Taiwan trading calendar. On a weekend or exchange holiday it publishes no artifacts and returns a Chinese status summary; on a trading day it rebuilds, publishes, and returns the same summary fields with the new verification results.
 
 ## Known Constraints
 
 - Do not read, print, or store secret values. This file only records the location and boundary of local-only configuration.
 - A Codex project/thread path binding does not migrate automatically when a folder moves. New project entries and recurring automations must explicitly point to this Workspace.
 - Render availability and deployment state must be checked independently from local generation; a successful local build alone does not prove public availability.
+
+## User Corrections
+
+- 2026-07-12: The iCloud Workspace is the only project directory. The former `/Users/tonyfu/Documents/稳健投资组合量化模型构建` directory was a two-file placeholder, not a project source, and was removed to prevent future path confusion.
+- 2026-07-13: The `dashboard` automation triggered at 13:46 and ended after about 17 minutes with `last_agent_message=null`; no files, commits, or public Dashboard version changed. Treat this as an automation empty-run failure, not a market-data issue. The weekday 16:30 watchdog `dashboard-4` was added to check for stale output and compensate automatically.
