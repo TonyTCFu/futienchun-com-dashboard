@@ -12,6 +12,7 @@
 - 2026-07-16 本地模拟盘自动落账 `1` 笔卖出：`2454` 卖出 `1` 股；执行后 `data/simulated_positions_latest.csv` 为 `13` 檔持仓，最后模拟盘执行日 `2026-07-16`。
 - 2026-07-16 调仓日历为：最后回测调仓日 `2026-07-07`，预计下次回测调仓 `2026-07-17`，距下次还差 `1` 个共同交易日；策略监控 `signal-pill sell=0`、可见 `建议卖出=0`。
 - 2026-07-16 Dashboard 研究摘要 QA 基线已同步为 `AI 供应链权重 31.95%`、`风险贡献 51.69%`、`风险-权重差 +19.74%`；本轮还修正了 QA 脚本中 iCloud Obsidian `台股量化基金.md` 的实际路径。
+- 2026-07-16 Workspace 提交 `5a514bd` 已推送 `origin/main`，部署仓库提交 `4119040` 已推送 `futienchun-com-dashboard/main`；Render 首页正文已验证切到 `2026-07-16 / 2026-07-16`，`/healthz=ok`，`/version.json` 与首页 `ETag` / `X-Dashboard-Version` 一致为 `4dc59fb33838df1ba159418b7f7b3794e0669df8ffee5d82fcc28ba537c1dcdb`。
 - 2026-07-13 已完成自动化空跑复盘：`dashboard` 自动化在 13:46 触发后约 17 分钟结束，但 `last_agent_message=null`，没有执行命令、修改文件或发布公网；根因归类为自动化执行层空跑。
 - 2026-07-13 已新增补偿自动化 `dashboard-4`（工作日 16:30），用于检测 Dashboard 过期、主自动化空跑或公网仍旧，并在需要时自动补跑正式交易日日更。
 - 2026-07-13 手动补跑已按 `public-close + market-mode close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades` 完成，本地 Dashboard 快照时间为 `2026-07-13T22:11:53`，行情/回测最新日与模型盘市值日均为 `2026-07-13`。

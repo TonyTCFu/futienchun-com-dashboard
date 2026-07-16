@@ -13,6 +13,8 @@
 - 调仓日历为：最后回测调仓日 `2026-07-07`，预计下次回测调仓 `2026-07-17`，距下次还差 `1` 个共同交易日；最后模拟盘执行日 `2026-07-16`。
 - 策略监控检查通过：待复核调仓 `0` 笔、`signal-pill sell=0`、可见 `建议卖出=0`，没有已落账标的仍显示红色建议卖出。
 - Dashboard 研究摘要漂移为 `AI 供应链权重 31.95%`、`风险贡献 51.69%`、`风险-权重差 +19.74%`；已同步 QA 基线与 iCloud Obsidian `台股量化基金.md`，并修正 QA 脚本中的 Obsidian 卡片路径。
+- Workspace 提交 `5a514bd` 已推送到 `origin/main`；部署仓库提交 `4119040` 已推送到 `futienchun-com-dashboard/main`。
+- 公网验证通过：`https://futienchun-com-dashboard.onrender.com/` 首页正文第 2 轮轮询命中 `今日 Dashboard 更新日期：2026-07-16` 与 `行情/回测序列最新日期：2026-07-16`，`/healthz=ok`，首页 `X-Dashboard-Version`、`ETag` 与 `/version.json` 一致为 `4dc59fb33838df1ba159418b7f7b3794e0669df8ffee5d82fcc28ba537c1dcdb`。
 
 ### Verification Log
 
@@ -21,6 +23,7 @@
 - 页面解析通过：`今日 Dashboard 更新日期=2026-07-16`、`行情/回测序列最新日期=2026-07-16`、`最后回测调仓日=2026-07-07`、`预计下次回测调仓=2026-07-17`、`距下次还差交易日=1`、`最后模拟盘执行日=2026-07-16`、`已落账模拟成交=1`。
 - 策略监控检查通过：`signal-pill sell=0`、可见 `建议卖出=0`。
 - `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 scripts/run_local_qa_checks.py --skip-dashboard-fixture` 通过，输出 `/tmp/tw_quant_local_qa_summary.md` 与 `/tmp/tw_quant_local_qa_summary.json`。
+- 公网发布验证通过：正文 `2026-07-16 / 2026-07-16`、`/healthz=ok`、缓存版本 `4dc59fb33838df1ba159418b7f7b3794e0669df8ffee5d82fcc28ba537c1dcdb` 一致，公网 `signal-pill sell=0`、可见 `建议卖出=0`。
 
 ### Files Changed
 
