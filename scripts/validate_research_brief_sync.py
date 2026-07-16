@@ -10,8 +10,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DASHBOARD = ROOT / "dashboard" / "index.html"
 DEFAULT_OBSIDIAN_NOTE = Path(
     "/Users/tonyfu/Library/Mobile Documents/iCloud~md~obsidian/Documents/"
-    "AI-Knowledge-Wiki/02-The-Wiki/05-商业金融与量化交易/01-量化交易/"
-    "03-策略实践/台股量化基金.md"
+    "AI-Knowledge-Wiki/02-The-Wiki/05-商业金融与量化交易/"
+    "01-量化交易/台股量化基金.md"
 )
 
 
@@ -44,9 +44,9 @@ def validate_sync(dashboard_path: Path, obsidian_note: Path) -> tuple[int, int]:
 
     required_fragments = [
         "## 七、最新研究摘要",
-        "AI 供应链权重 32.55%",
-        "风险贡献 52.44%",
-        "风险-权重差 +19.89%",
+        "AI 供应链权重 31.95%",
+        "风险贡献 51.69%",
+        "风险-权重差 +19.74%",
         "舊格式 2 筆",
         "不代表未来报酬预测",
         "实盘订单或券商账户状态",

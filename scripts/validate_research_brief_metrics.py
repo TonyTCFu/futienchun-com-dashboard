@@ -8,10 +8,10 @@ from validate_research_brief_sync import DEFAULT_DASHBOARD, extract_research_bri
 
 
 EXPECTED_METRICS = {
-    "ai_weight_percent": "32.55%",
-    "risk_contribution_percent": "52.44%",
-    "risk_weight_gap_percent": "+19.89%",
-    "trade_count": "2",
+    "ai_weight_percent": "31.95%",
+    "risk_contribution_percent": "51.69%",
+    "risk_weight_gap_percent": "+19.74%",
+    "trade_status": "no_pending_rebalance",
 }
 
 
@@ -24,7 +24,7 @@ def validate_metrics(dashboard_path: Path) -> dict[str, str]:
         "ai_weight_percent": r"AI 供应链权重 ([0-9.]+%)",
         "risk_contribution_percent": r"AI 供应链权重 [0-9.]+%，风险贡献 ([0-9.]+%)",
         "risk_weight_gap_percent": r"风险-权重差 ([+-][0-9.]+%)",
-        "trade_count": r"(?:已有|本轮有) (\d+) 笔(?:本日模拟调仓转为观察|待(?:确认|复核)调仓)",
+        "trade_status": r"本轮没有新的待复核调仓",
     }
 
     actual: dict[str, str] = {}
@@ -34,13 +34,13 @@ def validate_metrics(dashboard_path: Path) -> dict[str, str]:
         target_text = brief
         if key in {"ai_weight_percent", "risk_contribution_percent", "risk_weight_gap_percent"}:
             target_text = ai_line
-        elif key == "trade_count":
+        elif key == "trade_status":
             target_text = trade_line
         match = re.search(pattern, target_text)
         if not match:
             missing.append(key)
             continue
-        actual[key] = match.group(1)
+        actual[key] = match.group(1) if match.groups() else "no_pending_rebalance"
         expected = EXPECTED_METRICS[key]
         if actual[key] != expected:
             mismatched.append(f"{key}:{actual[key]}!={expected}")
@@ -68,7 +68,7 @@ def main() -> None:
         f"ai_weight={actual['ai_weight_percent']} "
         f"risk_contribution={actual['risk_contribution_percent']} "
         f"risk_weight_gap={actual['risk_weight_gap_percent']} "
-        f"trade_count={actual['trade_count']}"
+        f"trade_status={actual['trade_status']}"
     )
 
 

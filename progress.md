@@ -1,5 +1,45 @@
 # Loop Engineering Progress
 
+## 2026-07-16 收盘日更
+
+### Actions
+
+- 已按 TWSE 官方 2026 年休市 API 判定 `2026-07-16` 为交易日；本轮未读取 `.env`、`.shioaji.local.env`、API key 或 token，未调用券商下单、改单、撤单或账户交易接口。
+- 已先执行一次正式 public-close 重建，页面日期切到 `2026-07-16`，但行情/回测共同日仍停在 `2026-07-13`；随后直接核对 TWSE 单标的公开月资料，确认 `0050` 与 `2330` 已有 `115/07/16` 收盘资料。
+- 已定位卡点为部分 `202607` 月缓存未补到 7/16：`00713`、`00881`、`00919`、`2330`、`2317`、`2303`、`2881`、`1301` 仍停在 `115/07/13`。本轮只用 TWSE 公开 `STOCK_DAY` 端点补刷这些月缓存，15 檔随后全部到 `115/07/16`。
+- 第二次正式重建使用 `public-close + market-mode close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades`，耗时 `real 37.22`；Dashboard 更新日期与行情/回测序列最新日期均为 `2026-07-16`。
+- 正式生成 `data/model_portfolio_market_2026-07-16.csv` 与 summary：`quote_count=14`、`missing_count=0`、当前持仓市值 `NT$276,726.00`、未实现盈亏 `NT$-1,221.31`。
+- 本轮本地模拟盘新增 `2026-07-16` 模拟成交 `1` 笔：`2454` 卖出 `1` 股；执行后 `data/simulated_positions_2026-07-16.csv` 与 latest 均为 `13` 檔持仓。
+- 调仓日历为：最后回测调仓日 `2026-07-07`，预计下次回测调仓 `2026-07-17`，距下次还差 `1` 个共同交易日；最后模拟盘执行日 `2026-07-16`。
+- 策略监控检查通过：待复核调仓 `0` 笔、`signal-pill sell=0`、可见 `建议卖出=0`，没有已落账标的仍显示红色建议卖出。
+- Dashboard 研究摘要漂移为 `AI 供应链权重 31.95%`、`风险贡献 51.69%`、`风险-权重差 +19.74%`；已同步 QA 基线与 iCloud Obsidian `台股量化基金.md`，并修正 QA 脚本中的 Obsidian 卡片路径。
+
+### Verification Log
+
+- `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py scripts/validate_research_brief_sync.py scripts/validate_research_brief_metrics.py scripts/export_research_brief_markdown.py scripts/validate_legacy_trade_batch_status.py scripts/init_shioaji_market_cache.py` 通过。
+- 正式重建完成：第一次 `real 259.64` 暴露部分月缓存仍旧；补刷公开月缓存后第二次 `real 37.22`，成功生成正式 `dashboard/index.html`。
+- 页面解析通过：`今日 Dashboard 更新日期=2026-07-16`、`行情/回测序列最新日期=2026-07-16`、`最后回测调仓日=2026-07-07`、`预计下次回测调仓=2026-07-17`、`距下次还差交易日=1`、`最后模拟盘执行日=2026-07-16`、`已落账模拟成交=1`。
+- 策略监控检查通过：`signal-pill sell=0`、可见 `建议卖出=0`。
+- `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 scripts/run_local_qa_checks.py --skip-dashboard-fixture` 通过，输出 `/tmp/tw_quant_local_qa_summary.md` 与 `/tmp/tw_quant_local_qa_summary.json`。
+
+### Files Changed
+
+- `dashboard/index.html`
+- `data/model_portfolio_2026-06-03.csv`
+- `data/model_portfolio_latest.csv`
+- `data/model_portfolio_market_2026-07-16.csv`
+- `data/model_portfolio_market_2026-07-16_summary.txt`
+- `data/simulated_positions_2026-07-16.csv`
+- `data/simulated_positions_latest.csv`
+- `data/simulated_trades_2026-07-16.csv`
+- `scripts/run_local_qa_checks.py`
+- `scripts/validate_research_brief_sync.py`
+- `scripts/validate_research_brief_metrics.py`
+- `progress.md`
+- `findings.md`
+- `.codex/PROJECT_CONTEXT.md`
+- iCloud Obsidian `台股量化基金.md`
+
 ## 2026-07-13 自动化空跑复盘与手动补跑
 
 ### Actions
