@@ -21,6 +21,7 @@ This file preserves durable project context for the Taiwan equity risk dashboard
 - The public server sends no-cache headers and a content-derived `ETag` / `X-Dashboard-Version`. A changed Dashboard content hash is the release cache version, allowing every device to revalidate the current release.
 - For month boundaries, update the `--end` window to the current month. Keeping an old month can roll the common price series backward.
 - The daily automation must be gated by the Taiwan trading calendar. On a weekend or exchange holiday it publishes no artifacts and returns a Chinese status summary; on a trading day it rebuilds, publishes, and returns the same summary fields with the new verification results.
+- If TWSE 202607-style monthly data becomes complete after an earlier same-day rebuild, rerun the public-close command with `--offline-cache --allow-stale-cache` to bypass the aggregate matrix cache and read the refreshed monthly JSON cache directly.
 
 ## Known Constraints
 
