@@ -13,6 +13,8 @@
 - 当前调仓与执行状态：最后回测调仓日 `2026-07-17`，预计下次回测调仓 `2026-07-17`，最后模拟盘执行日显示为 `无执行记录`；策略监控有 `1` 笔待复核买入（00919 买入 96 股），卖出 `0` 笔。
 - 策略监控检查通过：`signal-pill sell=0`、可见 `建议卖出=0`，没有已落账标的仍显示红色建议卖出。
 - Dashboard 研究摘要漂移到“待复核买入 1 笔”口径；已同步 QA 基线与 iCloud Obsidian `台股量化基金.md`。
+- Workspace 提交 `f0ef2d6` 已推送到 `origin/main`；部署仓库提交 `84415fc` 已推送到 `futienchun-com-dashboard/main`。
+- 公网验证通过：`https://futienchun-com-dashboard.onrender.com/` 首页正文第 3 轮轮询命中 `今日 Dashboard 更新日期：2026-07-17` 与 `行情/回测序列最新日期：2026-07-17`，`/healthz=ok`，首页 `X-Dashboard-Version`、`ETag` 与 `/version.json` 一致为 `6f5675aae69902f9de0b675180f09925014f7ee60d7fa3cef8e4b75067360395`。
 
 ### Verification Log
 
@@ -21,6 +23,7 @@
 - 页面解析通过：`今日 Dashboard 更新日期=2026-07-17`、`行情/回测序列最新日期=2026-07-17`、`最后回测调仓日=2026-07-17`、`最后模拟盘执行日=无执行记录`、`已落账模拟成交=0`、`待复核调仓=1`。
 - 策略监控检查通过：`signal-pill sell=0`、可见 `建议卖出=0`；待复核单为 `00919` 买入 `96` 股。
 - `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 scripts/run_local_qa_checks.py --skip-dashboard-fixture` 通过，输出 `/tmp/tw_quant_local_qa_summary.md` 与 `/tmp/tw_quant_local_qa_summary.json`。
+- 公网发布验证通过：正文 `2026-07-17 / 2026-07-17`、`/healthz=ok`、缓存版本 `6f5675aae69902f9de0b675180f09925014f7ee60d7fa3cef8e4b75067360395` 一致，公网 `signal-pill sell=0`、可见 `建议卖出=0`。
 
 ### Files Changed
 

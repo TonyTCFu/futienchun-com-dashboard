@@ -9,6 +9,7 @@
 - 本轮 `--execute-simulated-trades` 新增模拟成交 `0` 笔；`data/simulated_trades_2026-07-17.csv` 仅含表头，持仓 latest 维持 `13` 檔。
 - 策略监控出现 `1` 笔待复核买入：`00919` 买入 `96` 股；卖出 `0` 笔，`signal-pill sell=0`、可见 `建议卖出=0`。
 - Dashboard 研究摘要关键数字仍为 `AI 供应链权重 31.95%`、`风险贡献 51.69%`、`风险-权重差 +19.74%`，但调仓状态改为“本轮有 1 笔待复核调仓：买入 1 笔、卖出 0 笔”；QA 基线和 iCloud Obsidian `台股量化基金.md` 已同步。
+- Workspace 提交 `f0ef2d6` 与部署仓库提交 `84415fc` 均已推送；Render 首页正文第 3 轮切到 `2026-07-17 / 2026-07-17`，`/healthz=ok`，缓存版本 `6f5675aae69902f9de0b675180f09925014f7ee60d7fa3cef8e4b75067360395` 与首页 `ETag` / `X-Dashboard-Version` 一致。
 
 ## 2026-07-16 收盘日更
 
