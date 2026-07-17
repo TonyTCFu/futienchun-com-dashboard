@@ -3291,6 +3291,7 @@ def render_dashboard(
         f"已刷新公开收盘价路径，Dashboard 行情/回测序列最新日期为 {dashboard_data_end}。",
         f"已套用本地模型盘市值档 {portfolio_market_date}（{market_mode_text}），当前持仓市值 {format_twd(current_market_value)}，未实现盈亏 {format_twd(current_unrealized_pnl)}。",
         f"已复核策略监控：待复核调仓 {len(actionable_signals)} 笔，已落账模拟成交 {execution_trade_count} 笔，红色卖出建议不会重复显示已落账标的。",
+        "公网发布后以首页正文、/healthz、/version.json 与 ETag / X-Dashboard-Version 一致性作为完成标准；本地线程只保留极简状态。",
     ]
     next_steps = [
         "下一交易日继续用公开收盘价刷新 Dashboard，并把公网首页正文作为发布完成标准。",
@@ -3301,10 +3302,10 @@ def render_dashboard(
       <section id="update-summary" class="section panel">
         <div class="section-heading">
           <div>
-            <span class="eyebrow">Today Brief</span>
-            <h2>今日市场与更新摘要</h2>
+            <span class="eyebrow">Daily Update Summary</span>
+            <h2>每日更新 Summary</h2>
           </div>
-          <span class="status-pill">当前状态 / 已做事项 / 短期下一步</span>
+          <span class="status-pill">公网验收 / 已做事项 / 短期下一步</span>
         </div>
         <div class="analysis-note"><b>今天台股：</b>{html.escape(taiex_market_text)}</div>
         <div class="metric-grid backtest-grid">
@@ -3323,7 +3324,7 @@ def render_dashboard(
             <ul class="risk-list update-summary-list">{''.join(f'<li>{html.escape(item)}</li>' for item in next_steps)}</ul>
           </div>
         </div>
-        <p class="footer-note">本区使用 TWSE 公开指数资料、本地公开收盘价缓存和模拟盘 CSV 生成；只用于研究与本地 paper portfolio 复核，不代表实盘委托或投资建议。</p>
+        <p class="footer-note">本区承接每日收盘自动化结果；详细状态看 Dashboard，自动化线程只保留极简更新或异常提示。本区只用于研究与本地 paper portfolio 复核，不代表实盘委托或投资建议。</p>
       </section>
 """
     rebalance_execution_calendar_html = f"""

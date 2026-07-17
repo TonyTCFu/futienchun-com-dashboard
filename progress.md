@@ -1,5 +1,19 @@
 # Loop Engineering Progress
 
+## 2026-07-17 自动化输出偏好调整
+
+### Actions
+
+- 已按用户偏好更新 `dashboard` 自动化：每日收盘后以公网 Dashboard 已更新作为完成标准，不再把完整交易日/非交易日摘要发回本地设备对话框。
+- Dashboard 的更新摘要区改名为“每日更新 Summary”，并补充公网验收口径：首页正文、`/healthz`、`/version.json` 与 `ETag` / `X-Dashboard-Version` 一致性。
+- 已同步 `MEMORY.md` 与 `README.md`，记录“详细结果进 Dashboard，线程只保留极简状态”的长期规则。
+
+### Verification Log
+
+- `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 -m py_compile src/risk_dashboard.py` 通过。
+- 短区间临时 Dashboard 冒烟通过：`python3 src/risk_dashboard.py --start 2024-01 --end 2024-06 --offline-cache --allow-stale-cache --output /tmp/tw_quant_summary_smoke.html`。
+- 临时 Dashboard 命中 `每日更新 Summary`、`公网验收 / 已做事项 / 短期下一步`、`本地线程只保留极简状态`。
+
 ## 2026-07-17 收盘日更
 
 ### Actions

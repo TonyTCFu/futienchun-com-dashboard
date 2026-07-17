@@ -17,6 +17,7 @@ This file preserves durable project context for the Taiwan equity risk dashboard
 - The recurring automation id is `dashboard`, named `台股 Dashboard 每日收盘更新`, and runs against this Workspace after Taiwan market close.
 - The watchdog automation id is `dashboard-4`, named `台股 Dashboard 更新漏跑补偿`, and runs on weekdays at 16:30 Asia/Shanghai to detect stale or empty daily runs and retry the full trading-day update when needed.
 - Each daily run must update `dashboard/index.html`, refresh the paper-portfolio artifacts when applicable, push the deployment repository, and verify the public URL.
+- Daily automation should treat the public Dashboard as the user-facing report surface. After cloud verification, keep the Codex thread response minimal and put detailed daily results in the Dashboard daily update summary, handoff docs, and automation memory.
 - Paper-portfolio actions are automatic when the daily run includes `--execute-simulated-trades`: strategy-triggered virtual trades are written to local CSV artifacts without user confirmation. Dashboard buttons are review/audit markers stored in the browser only and must not gate CSV ledgering.
 - The public server sends no-cache headers and a content-derived `ETag` / `X-Dashboard-Version`. A changed Dashboard content hash is the release cache version, allowing every device to revalidate the current release.
 - For month boundaries, update the `--end` window to the current month. Keeping an old month can roll the common price series backward.

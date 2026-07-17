@@ -274,6 +274,12 @@ python scripts/serve_dashboard.py --host 0.0.0.0 --port 8000
 
 这个服务默认把 `/` 指向 `dashboard/index.html`，并提供 `/healthz` 与 `/version.json`。首页始终回源校验，并以 Dashboard 内容 SHA-256 作为 `ETag` / `X-Dashboard-Version`；每次正式重建和公网发布都会自动得到新版本，避免不同设备读取旧页面。如果你要公开部署，建议设置基本认证：
 
+### Daily Close Automation Summary
+
+The `dashboard` automation runs after the Taiwan market close. It must first determine whether Taiwan equities are open. On weekends or exchange holidays, it must not rebuild the Dashboard, write paper-trading files, or publish. On trading days, the automation rebuilds, publishes, and verifies the public Dashboard body, `/healthz`, `/version.json`, and the home-page `ETag` / `X-Dashboard-Version`.
+
+The public Dashboard is the report surface. Detailed daily results should be visible in the Dashboard daily update summary and handoff docs; the Codex thread should only receive a minimal status such as public update complete or the exact blocker.
+
 ```bash
 export DASHBOARD_BASIC_AUTH_USER="dashboard"
 export DASHBOARD_BASIC_AUTH_PASSWORD="你的密码"

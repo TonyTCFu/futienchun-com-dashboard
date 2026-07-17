@@ -6,6 +6,7 @@
 
 ## 二、当前状态
 
+- 2026-07-17 用户更新偏好：每日收盘自动化只需确认云端 Dashboard 已更新，不要再把完整更新摘要发回本地设备对话框；详细结果应进入 Dashboard “每日更新 Summary”、项目交接文档和 automation memory，线程只保留极简状态或失败点。
 - 2026-07-17 已按 TWSE 官方 2026 年休市 API 确认交易日，并完成收盘日更；本轮未读取 `.env`、`.shioaji.local.env`、API key 或 token，未调用券商下单。
 - 2026-07-17 初次 public-close 重建时，TWSE 月资料仍分批更新，006208、2317、2412 尚未到 `115/07/17`，导致行情/回测共同日仍停在 `2026-07-16`；待 15 檔均补齐后，最终用 `--offline-cache --allow-stale-cache` 绕过旧聚合矩阵缓存并读取刷新后的月缓存。
 - 2026-07-17 最终 Dashboard 更新日期与行情/回测序列最新日期均为 `2026-07-17`；生成 `data/model_portfolio_market_2026-07-17.csv`，`quote_count=13`、`missing_count=0`，当前持仓市值 `NT$264,715.26`、未实现盈亏 `NT$-8,770.80`。
