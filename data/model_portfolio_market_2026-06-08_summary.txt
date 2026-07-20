@@ -1,0 +1,8 @@
+market_date=2026-06-08
+market_mode=close
+quote_count=15
+missing_count=0
+total_market_value=354011.64
+total_unrealized_pnl=-18946.78
+missing_symbols=
+00881_fallback_close=52.4000

@@ -1,0 +1,16 @@
+symbol,name,type,market,sector,theme,ai_supply_chain
+0050,元大台灣50,ETF,TWSE,宽基ETF,large-cap,false
+0056,元大高股息,ETF,TWSE,高股息ETF,dividend,false
+00878,國泰永續高股息,ETF,TWSE,高股息ETF,dividend,false
+006208,富邦台50,ETF,TWSE,宽基ETF,large-cap,false
+00713,元大台灣高息低波,ETF,TWSE,低波高息ETF,low-vol-dividend,false
+00881,國泰台灣5G+,ETF,TWSE,科技/5G ETF,ai-supply-chain,true
+00919,群益台灣精選高息,ETF,TWSE,高股息ETF,dividend,false
+2330,台積電,Stock,TWSE,半导体/晶圆代工,ai-supply-chain,true
+2317,鴻海,Stock,TWSE,电子制造/AI服务器链,ai-supply-chain,true
+2454,聯發科,Stock,TWSE,半导体/IC设计,ai-supply-chain,true
+2303,聯電,Stock,TWSE,半导体/晶圆代工,ai-supply-chain,true
+2881,富邦金,Stock,TWSE,金融,financial,false
+2882,國泰金,Stock,TWSE,金融,financial,false
+2412,中華電,Stock,TWSE,电信/防御,defensive,false
+1301,台塑,Stock,TWSE,传统产业/塑化,cyclical,false

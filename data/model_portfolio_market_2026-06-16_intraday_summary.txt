@@ -1,0 +1,9 @@
+market_date=2026-06-16
+market_mode=intraday
+quote_time=2026-06-16T18:28:40
+total_cost=365163.89
+current_market_value=371618.93
+unrealized_pnl=6455.04
+unrealized_pnl_pct=0.017677
+quote_count=15
+missing_count=0

@@ -1,0 +1,3 @@
+﻿trade_id,trade_date,symbol,name,action,shares,trade_price,gross_amount,fee,tax,net_amount,realized_cost,realized_pnl,remaining_shares,reason,status
+paper-20260702-2317-sell-01-8fda1ed5fc,2026-07-02,2317,鴻海,sell,1,239.0000,239.00,0.00,1.00,238.00,312.44,-74.44,2,模拟盘连续收盘亏损超过约 6%，已连续观察至少 2 天，建议先减码 25%。,executed
+paper-20260702-2303-sell-01-2a67153db0,2026-07-02,2303,聯電,sell,22,165.5000,3641.00,5.00,11.00,3625.00,2974.27,650.73,85,持仓获利超过约 8% 且 RSI 偏热，并已连续观察至少 2 天，建议分批获利了结 20%。,executed

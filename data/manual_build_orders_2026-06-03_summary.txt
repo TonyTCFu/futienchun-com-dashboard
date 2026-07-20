@@ -1,0 +1,11 @@
+initial_cash=500000.00
+target_invest_ratio=0.75
+target_invest_cash=375000.00
+total_gross=372428.42
+buy_commission_estimate=530
+total_buy_cost=372958.42
+remaining_cash=127041.58
+actual_build_percent=0.745917
+future_sell_tax_estimate=835
+quote_count=15
+order_count=15

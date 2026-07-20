@@ -1,0 +1,10 @@
+.env
+.shioaji.local.env
+.shioaji.runtime/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+data/cache/
+data/matrix_cache/
+shioaji.log

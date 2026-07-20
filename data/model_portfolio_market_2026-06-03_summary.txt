@@ -1,0 +1,6 @@
+total_cost=372958.42
+current_market_value=370440.03
+unrealized_pnl=-2518.39
+unrealized_pnl_pct=-0.006752
+quote_count=15
+position_count=15

@@ -1,0 +1,2 @@
+﻿trade_id,trade_date,symbol,name,action,shares,trade_price,gross_amount,fee,tax,net_amount,realized_cost,realized_pnl,remaining_shares,reason,status
+paper-20260626-2317-sell-01-629c866c83,2026-06-26,2317,鴻海,sell,2,248.5000,497.00,1.00,1.00,495.00,624.88,-129.88,4,模拟盘连续收盘亏损超过约 6%，已连续观察至少 2 天，建议先减码 25%。,executed

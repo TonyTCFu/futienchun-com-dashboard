@@ -1,0 +1,3 @@
+﻿trade_id,trade_date,symbol,name,action,shares,trade_price,gross_amount,fee,tax,net_amount,realized_cost,realized_pnl,remaining_shares,reason,status
+paper-20260629-2317-sell-01-5941c1db88,2026-06-29,2317,鴻海,sell,1,246.5000,246.50,0.00,1.00,245.50,312.44,-66.94,3,模拟盘连续收盘亏损超过约 6%，已连续观察至少 2 天，建议先减码 25%。,executed
+paper-20260629-2454-sell-01-357c57f87d,2026-06-29,2454,聯發科,sell,1,3910.0000,3910.00,6.00,12.00,3892.00,4461.25,-569.25,3,模拟盘连续收盘亏损超过约 6%，已连续观察至少 2 天，建议先减码 25%。,executed
