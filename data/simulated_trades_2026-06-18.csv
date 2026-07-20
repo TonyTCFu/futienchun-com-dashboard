@@ -1,4 +1,0 @@
-﻿trade_id,trade_date,symbol,name,action,shares,trade_price,gross_amount,fee,tax,net_amount,realized_cost,realized_pnl,remaining_shares,reason,status
-paper-20260618-2317-sell-01-bbc0258df4,2026-06-18,2317,鴻海,sell,7,268.5000,1879.50,3.00,6.00,1870.50,2187.08,-316.58,20,模拟盘连续收盘亏损超过约 6%，已连续观察至少 2 天，建议先减码 25%。,executed
-paper-20260618-2881-sell-01-8086b2e2ee,2026-06-18,2881,富邦金,sell,48,138.0000,6624.00,9.00,20.00,6595.00,5479.90,1115.10,189,持仓获利超过约 8% 且 RSI 偏热，并已连续观察至少 2 天，建议分批获利了结 20%。,executed
-paper-20260618-2882-sell-01-090ea8535e,2026-06-18,2882,國泰金,sell,49,115.5000,5659.50,8.00,17.00,5634.50,4489.93,1144.57,195,持仓获利超过约 8% 且 RSI 偏热，并已连续观察至少 2 天，建议分批获利了结 20%。,executed

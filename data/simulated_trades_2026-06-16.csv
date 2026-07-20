@@ -1,3 +1,0 @@
-﻿trade_id,trade_date,symbol,name,action,shares,trade_price,gross_amount,fee,tax,net_amount,realized_cost,realized_pnl,remaining_shares,reason,status
-paper-20260616-2317-sell-01-c728c4157f,2026-06-16,2317,鴻海,sell,10,269.0000,2690.00,4.00,8.00,2678.00,3124.40,-446.40,27,模拟盘连续收盘亏损超过约 6%，已连续观察至少 2 天，建议先减码 25%。,executed
-paper-20260616-1301-sell-01-6372bcbd14,2026-06-16,1301,台塑,sell,53,46.7500,2477.75,4.00,7.00,2466.75,2786.46,-319.71,157,模拟盘连续收盘亏损超过约 6%，已连续观察至少 2 天，建议先减码 25%。,executed
