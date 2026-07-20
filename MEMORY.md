@@ -29,6 +29,7 @@ This file preserves durable project context for the Taiwan equity risk dashboard
 - Do not read, print, or store secret values. This file only records the location and boundary of local-only configuration.
 - A Codex project/thread path binding does not migrate automatically when a folder moves. New project entries and recurring automations must explicitly point to this Workspace.
 - Render availability and deployment state must be checked independently from local generation; a successful local build alone does not prove public availability.
+- The SSH host alias `github-worldcup` is only a GitHub authentication alias on this machine. It is not a World Cup project dependency. When publishing this dashboard, sync only this Taiwan equity project directory into the `futienchun-com-dashboard` deployment repository.
 
 ## User Corrections
 

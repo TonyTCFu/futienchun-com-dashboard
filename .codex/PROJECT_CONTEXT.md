@@ -11,7 +11,8 @@
 - 2026-07-20 生成 `data/model_portfolio_market_2026-07-20.csv`，`quote_count=13`、`missing_count=0`；本地模拟盘自动落账 `3` 笔卖出：`0050` 30 股、`006208` 24 股、`00881` 88 股，最后模拟盘执行日 `2026-07-20`。
 - 2026-07-20 Dashboard “每日更新 Summary” 已显示本轮结果；当前待复核调仓 `2` 笔，均为买入，页面可见 `建议卖出=0`。
 - 2026-07-20 研究摘要 QA 基线为 `AI 供应链权重 31.25%`、`风险贡献 51.18%`、`风险-权重差 +19.93%`、`pending_buy_2_sell_0`；`scripts/run_local_qa_checks.py --skip-dashboard-fixture` 已通过，iCloud Obsidian `台股量化基金.md` 已同步。
-- 2026-07-20 本地 Dashboard hash 为 `b87ecf9916ad2af73ed619aadd6fe3bb0a56bc18189ba66c659be190566a8a4e`；公网发布完成仍需以首页正文、`/healthz`、`/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 一致性验收。
+- 2026-07-20 Workspace 提交 `e99092a` 已推送；部署仓库第一次同步误提交删除全仓 `471a921`，已立即用 `c6307de` revert 并重新发布部署提交 `70f11f1`。公网首页正文已命中 `2026-07-20` 与 `每日更新 Summary`，`/healthz=200`，`/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 一致为 `0a77a2fe1dee003b8dea1cb8f5aa10108a813521385497e62d4f9f772cfaa46d`。
+- 2026-07-20 `github-worldcup` 是本机 SSH config 的 GitHub host alias 名称，不代表 World Cup 项目参与台股发布；后续回报和脚本说明避免把该 alias 写成项目语义，部署同步继续只从台股项目目录到 `futienchun-com-dashboard` 根目录。
 - 2026-07-17 用户更新偏好：每日收盘自动化与复核/漏跑补偿自动化都只需确认云端 Dashboard 已更新，不要再把完整每日摘要或复核摘要发回本地设备对话框；详细结果应进入 Dashboard “每日更新 Summary”、项目交接文档和 automation memory，线程只保留极简状态或失败点。
 - 2026-07-17 公网 Dashboard 发布必须同时更新并验收缓存版本；发布不只看正文，还要确认 `/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 都匹配新 `dashboard/index.html` 内容 hash。
 - 2026-07-17 已把 Dashboard 更新摘要区改名为“每日更新 Summary”，并验证公网正文已切到新版本；缓存版本 `082970e75e62b1e54cf57c700db88ce1920b050f6740098b8b6a75a050d801ca` 与首页 `ETag` / `X-Dashboard-Version`、`/version.json` 一致。

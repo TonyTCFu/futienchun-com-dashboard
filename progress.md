@@ -14,7 +14,9 @@
 
 - 已执行：`PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py scripts/validate_research_brief_metrics.py scripts/validate_research_brief_sync.py scripts/export_research_brief_markdown.py scripts/validate_legacy_trade_batch_status.py`，结果通过。
 - 已执行：`PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 scripts/run_local_qa_checks.py --skip-dashboard-fixture`，结果输出 `local_qa_checks_ok`。
-- 本地 Dashboard hash 为 `b87ecf9916ad2af73ed619aadd6fe3bb0a56bc18189ba66c659be190566a8a4e`；发布后仍需以公网首页正文、`/healthz`、`/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 作最终完成判定。
+- Workspace 提交 `e99092a` 已推送 `origin/main`；第一次部署同步误提交删除全仓的 `471a921`，已立即用 `c6307de` revert 并推回，随后用 `rsync --delete` 从台股项目目录重发部署提交 `70f11f1`。
+- 公网验证通过：首页正文已命中 `2026-07-20` 与 `每日更新 Summary`，`/healthz=200`，`/version.json` 版本为 `0a77a2fe1dee003b8dea1cb8f5aa10108a813521385497e62d4f9f772cfaa46d`，首页 `ETag` 与 `X-Dashboard-Version` 同步为该版本。
+- 备注：`github-worldcup` 只是本机 SSH host alias 名称，不代表混用 World Cup 项目；后续发布说明应称为 `github-worldcup` GitHub host alias 或改名，避免项目语义混淆。
 
 ## 2026-07-17 自动化摘要投递规则再确认
 

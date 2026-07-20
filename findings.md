@@ -8,7 +8,9 @@
 - 本地模拟盘本轮自动落账 `3` 笔卖出：`0050` 30 股、`006208` 24 股、`00881` 88 股；最后模拟盘执行日为 `2026-07-20`。
 - Dashboard “每日更新 Summary” 已显示本轮结果；策略监控当前待复核调仓 `2` 笔，均为买入，页面可见 `建议卖出=0`。
 - 研究摘要 QA 基线同步为 `AI 供应链权重 31.25%`、`风险贡献 51.18%`、`风险-权重差 +19.93%`、`pending_buy_2_sell_0`；iCloud Obsidian `台股量化基金.md` 已同步。
-- 本地 QA 已通过；公网发布完成仍需以首页正文、`/healthz`、`/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 一致性验收为准。
+- Workspace 提交 `e99092a` 已推送；部署仓库第一次同步误提交删除全仓 `471a921`，已用 `c6307de` revert 后重新以台股项目目录 `rsync --delete` 发布 `70f11f1`。
+- 公网验证通过：首页正文已命中 `2026-07-20` 与 `每日更新 Summary`，`/healthz=200`，`/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 一致为 `0a77a2fe1dee003b8dea1cb8f5aa10108a813521385497e62d4f9f772cfaa46d`。
+- `github-worldcup` 是本机 SSH host alias 名称，不代表 World Cup 项目参与台股发布；后续命令和回报应避免把 host alias 写成项目语义。
 
 ## 2026-07-17 自动化输出偏好调整
 
