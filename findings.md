@@ -2,6 +2,10 @@
 
 ## 2026-07-20 收盘日更
 
+- 2026-07-20 用户反馈 Dashboard 出现 `暂不可用`、`待复核`、`等待行情/待执行价` 后，已确认根因分别是：独立 TWSE 加权指数接口无 fallback、自动落账只处理卖出不处理买入、极小目标权重但无模拟持仓的标的被混入持仓表。
+- 已修复自动落账：`--execute-simulated-trades` 现在会同时处理买入和卖出；本轮补落账 `0056` 买入 `55` 股、`00919` 买入 `96` 股，今日模拟成交从 `3` 笔变为 `5` 笔，重跑保持幂等新增 `0` 笔。
+- 已修复 Dashboard 展示：首屏不再出现 `暂不可用`，持仓表不再出现 `等待行情/待执行价`，用户可见口径从“待复核”改为“待自动落账 / 页面审计”；当前页面为 `0 笔待自动落账 / 5 笔已落账`。
+- 已同步 QA 与 Obsidian 摘要基线：`AI 供应链权重 30.90%`、`风险贡献 50.76%`、`风险-权重差 +19.87%`、`trade_status=settled_5`；`run_local_qa_checks.py --skip-dashboard-fixture` 通过。
 - TWSE 官方 2026 年休市资料确认 `2026-07-20` 为交易日；本轮按交易日流程执行，未触碰敏感配置或券商交易端。
 - `public-close + close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades` 正式重建成功，并带 `--offline-cache --allow-stale-cache` 避免旧聚合矩阵缓存卡住当日月缓存。
 - 最终 Dashboard 更新日期、行情/回测序列最新日期和模型盘市值日均为 `2026-07-20`；正式市值档 `data/model_portfolio_market_2026-07-20.csv` 的 `quote_count=13`、`missing_count=0`。

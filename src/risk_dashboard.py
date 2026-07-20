@@ -1914,7 +1914,7 @@ def build_trade_signals(
             action = "观察"
             status = "observe"
             proposed_shares = None
-            reason = "本日模拟调仓已落账，当前不再列为待复核清单。"
+            reason = "本日模拟调仓已落账，当前不再列为待自动落账清单。"
 
         signals.append(
             TradeSignal(
@@ -2018,7 +2018,7 @@ def build_model_portfolio(
             price = None
             shares = None
             market_value = None
-        if target_weight <= 0 and not order:
+        if target_weight < 0.001 and not order:
             continue
         mark = (market_values or {}).get(symbol)
         if mark:
@@ -2462,6 +2462,7 @@ def write_simulated_trades(
     position_by_symbol = {position.symbol: position for position in portfolio.positions}
     name_by_symbol = {asset.symbol: asset.name for asset in assets}
     new_rows: list[dict[str, object]] = []
+    available_cash = float(portfolio.remaining_cash)
     for signal in signals:
         if signal.status not in {"buy", "sell"} or signal.proposed_shares is None:
             continue
@@ -2479,36 +2480,71 @@ def write_simulated_trades(
             trade_batch_seq == "01" and legacy_simulated_trade_key(trade_date, signal.symbol, action) in legacy_trade_keys
         ):
             continue
-        if action != "sell":
-            continue
         order = execution_orders.get(signal.symbol)
         position = position_by_symbol.get(signal.symbol)
-        if not order or not position or not position.shares:
-            continue
-        current_shares = int(order.get("shares") or 0)
-        trade_shares = min(int(signal.proposed_shares), current_shares)
-        if trade_shares <= 0:
+        if not position:
             continue
         trade_price = float(signal.latest_price)
-        gross_amount = trade_shares * trade_price
-        fee = round(gross_amount * 0.001425)
-        previous_gross = float(order.get("gross_amount") or 0)
-        tax_rate = (float(order.get("future_sell_tax_estimate") or 0) / previous_gross) if previous_gross > 0 else 0.003
-        tax = round(gross_amount * tax_rate)
-        net_amount = gross_amount - fee - tax
-        current_cost = float(order.get("total_buy_cost") or 0)
-        unit_cost = current_cost / current_shares if current_shares else 0.0
-        realized_cost = unit_cost * trade_shares
-        realized_pnl = net_amount - realized_cost
+        if action == "sell":
+            if not order or not position.shares:
+                continue
+            current_shares = int(order.get("shares") or 0)
+            trade_shares = min(int(signal.proposed_shares), current_shares)
+            if trade_shares <= 0:
+                continue
+            gross_amount = trade_shares * trade_price
+            fee = round(gross_amount * 0.001425)
+            previous_gross = float(order.get("gross_amount") or 0)
+            tax_rate = (float(order.get("future_sell_tax_estimate") or 0) / previous_gross) if previous_gross > 0 else 0.003
+            tax = round(gross_amount * tax_rate)
+            net_amount = gross_amount - fee - tax
+            current_cost = float(order.get("total_buy_cost") or 0)
+            unit_cost = current_cost / current_shares if current_shares else 0.0
+            realized_cost: float | str = unit_cost * trade_shares
+            realized_pnl: float | str = net_amount - float(realized_cost)
 
-        remaining_shares = current_shares - trade_shares
-        ratio = remaining_shares / current_shares if current_shares else 0.0
-        order["shares"] = float(remaining_shares)
-        order["gross_amount"] = float(order.get("gross_amount") or 0) * ratio
-        order["buy_commission_estimate"] = float(order.get("buy_commission_estimate") or 0) * ratio
-        order["buy_tax_estimate"] = float(order.get("buy_tax_estimate") or 0) * ratio
-        order["total_buy_cost"] = current_cost * ratio
-        order["future_sell_tax_estimate"] = float(order.get("future_sell_tax_estimate") or 0) * ratio
+            remaining_shares = current_shares - trade_shares
+            ratio = remaining_shares / current_shares if current_shares else 0.0
+            order["shares"] = float(remaining_shares)
+            order["gross_amount"] = float(order.get("gross_amount") or 0) * ratio
+            order["buy_commission_estimate"] = float(order.get("buy_commission_estimate") or 0) * ratio
+            order["buy_tax_estimate"] = float(order.get("buy_tax_estimate") or 0) * ratio
+            order["total_buy_cost"] = current_cost * ratio
+            order["future_sell_tax_estimate"] = float(order.get("future_sell_tax_estimate") or 0) * ratio
+        else:
+            trade_shares = int(signal.proposed_shares)
+            while trade_shares > 0:
+                gross_amount = trade_shares * trade_price
+                fee = round(gross_amount * 0.001425)
+                if gross_amount + fee <= available_cash:
+                    break
+                trade_shares -= 1
+            if trade_shares <= 0:
+                continue
+            gross_amount = trade_shares * trade_price
+            fee = round(gross_amount * 0.001425)
+            tax = 0
+            net_amount = -(gross_amount + fee)
+            realized_cost = ""
+            realized_pnl = ""
+            previous_shares = int((order or {}).get("shares") or 0)
+            previous_gross = float((order or {}).get("gross_amount") or 0.0)
+            previous_fee = float((order or {}).get("buy_commission_estimate") or 0.0)
+            previous_tax = float((order or {}).get("buy_tax_estimate") or 0.0)
+            previous_cost = float((order or {}).get("total_buy_cost") or 0.0)
+            previous_future_sell_tax = float((order or {}).get("future_sell_tax_estimate") or 0.0)
+            remaining_shares = previous_shares + trade_shares
+            total_gross = previous_gross + gross_amount
+            execution_orders[signal.symbol] = {
+                "buy_reference_price": total_gross / remaining_shares if remaining_shares else trade_price,
+                "shares": float(remaining_shares),
+                "gross_amount": total_gross,
+                "buy_commission_estimate": previous_fee + fee,
+                "buy_tax_estimate": previous_tax,
+                "total_buy_cost": previous_cost + gross_amount + fee,
+                "future_sell_tax_estimate": previous_future_sell_tax + round(gross_amount * 0.003),
+            }
+            available_cash -= gross_amount + fee
 
         new_rows.append(
             {
@@ -2523,8 +2559,8 @@ def write_simulated_trades(
                 "fee": f"{fee:.2f}",
                 "tax": f"{tax:.2f}",
                 "net_amount": f"{net_amount:.2f}",
-                "realized_cost": f"{realized_cost:.2f}",
-                "realized_pnl": f"{realized_pnl:.2f}",
+                "realized_cost": f"{realized_cost:.2f}" if isinstance(realized_cost, float) else realized_cost,
+                "realized_pnl": f"{realized_pnl:.2f}" if isinstance(realized_pnl, float) else realized_pnl,
                 "remaining_shares": remaining_shares,
                 "reason": signal.reason,
                 "status": "executed",
@@ -3243,20 +3279,30 @@ def render_dashboard(
             for signal in actionable_signals[:3]
         )
         if len(actionable_signals) > 3:
-            top_signal_items += f"<li>另有 {len(actionable_signals) - 3} 笔待复核调仓，详见下方建议单。</li>"
+            top_signal_items += f"<li>另有 {len(actionable_signals) - 3} 笔待自动落账调仓，详见下方建议单。</li>"
         trade_reason_summary = (
-            f"本轮有 {len(actionable_signals)} 笔待复核调仓：买入 {actionable_buy_count} 笔、卖出 {actionable_sell_count} 笔。"
+            f"本轮有 {len(actionable_signals)} 笔待自动落账调仓：买入 {actionable_buy_count} 笔、卖出 {actionable_sell_count} 笔。"
             "这些会由收盘自动化落到本地模拟盘，不会送出券商订单。"
         )
-        trade_reason_boundary = "待复核单代表规则已触发模拟盘动作；收盘自动化会用脚本写入本地 CSV，页面只保留复核状态。"
+        trade_reason_boundary = "待自动落账单代表规则已触发模拟盘动作；收盘自动化会用脚本写入本地 CSV，页面只保留浏览器审计标记。"
     elif settled_signal_count:
-        top_signal_items = "<li>本日触发过的模拟调仓已在本地 CSV 落账，当前页面不再重复列为待复核清单。</li>"
-        trade_reason_summary = f"本轮没有新的待复核调仓；已有 {settled_signal_count} 笔本日模拟调仓转为观察。"
-        trade_reason_boundary = "没有待复核单不代表风险解除；本轮是因为本日建议已通过脚本落账并转为观察。"
+        top_signal_items = "<li>本日触发过的模拟调仓已在本地 CSV 落账，当前页面不再重复列为待自动落账清单。</li>"
+        trade_reason_summary = f"本轮没有新的待自动落账调仓；已有 {settled_signal_count} 笔本日模拟调仓转为观察。"
+        trade_reason_boundary = "没有待自动落账单不代表风险解除；本轮是因为本日建议已通过脚本落账并转为观察。"
     else:
-        top_signal_items = "<li>本轮没有新的待复核调仓；持仓维持观察，等待价格、趋势、RSI 或连续天数重新触发。</li>"
-        trade_reason_summary = "本轮没有新的待复核调仓；当前更适合观察风险集中、回撤和压力情境。"
-        trade_reason_boundary = "没有待复核单不代表风险解除，只代表本轮没有标的同时满足买入/卖出阈值。"
+        top_signal_items = "<li>本轮没有新的待自动落账调仓；持仓维持观察，等待价格、趋势、RSI 或连续天数重新触发。</li>"
+        trade_reason_summary = "本轮没有新的待自动落账调仓；当前更适合观察风险集中、回撤和压力情境。"
+        trade_reason_boundary = "没有待自动落账单不代表风险解除，只代表本轮没有标的同时满足买入/卖出阈值。"
+    portfolio_market_date = model_portfolio.market_date if model_portfolio else dashboard_data_end
+    market_mode_text = (
+        "收盘定稿"
+        if model_portfolio and model_portfolio.market_mode == "close"
+        else "盘中暂估"
+        if model_portfolio and model_portfolio.market_mode == "intraday"
+        else "未套用今日行情"
+    )
+    current_market_value = sum((position.current_market_value or 0.0) for position in model_portfolio.positions) if model_portfolio else 0.0
+    current_unrealized_pnl = sum((position.unrealized_pnl or 0.0) for position in model_portfolio.positions) if model_portfolio else 0.0
     taiex_snapshot = fetch_taiex_snapshot(dashboard_generated_date)
     if taiex_snapshot:
         taiex_change_class = "positive" if taiex_snapshot.change_points >= 0 else "negative"
@@ -3271,32 +3317,25 @@ def render_dashboard(
           <div class="card"><div class="metric {taiex_change_class}">{format_percent(taiex_snapshot.change_pct, signed=True)}</div><p class="metric-label">加权指数涨跌幅</p></div>
         """
     else:
-        taiex_market_text = "TWSE 加权指数公开资料暂时无法读取；本区仍保留模型盘与行情序列状态。"
-        taiex_cards = """
-          <div class="card"><div class="metric">暂不可用</div><p class="metric-label">加权指数收盘</p></div>
-          <div class="card"><div class="metric">暂不可用</div><p class="metric-label">加权指数涨跌点</p></div>
-          <div class="card"><div class="metric">暂不可用</div><p class="metric-label">加权指数涨跌幅</p></div>
+        taiex_market_text = (
+            "加权指数独立接口本轮未返回；本区改用模型盘市值档、行情序列日期与模拟成交记录呈现今天状态。"
+            "这不影响持仓价格、盈亏和模拟盘落账。"
+        )
+        taiex_cards = f"""
+          <div class="card"><div class="metric">{format_twd(current_market_value)}</div><p class="metric-label">模型盘持仓市值</p></div>
+          <div class="card"><div class="metric {'positive' if current_unrealized_pnl >= 0 else 'negative'}">{format_twd(current_unrealized_pnl)}</div><p class="metric-label">模型盘未实现盈亏</p></div>
+          <div class="card"><div class="metric">{execution_trade_count}</div><p class="metric-label">已落账模拟成交</p></div>
         """
-    portfolio_market_date = model_portfolio.market_date if model_portfolio else dashboard_data_end
-    market_mode_text = (
-        "收盘定稿"
-        if model_portfolio and model_portfolio.market_mode == "close"
-        else "盘中暂估"
-        if model_portfolio and model_portfolio.market_mode == "intraday"
-        else "未套用今日行情"
-    )
-    current_market_value = sum((position.current_market_value or 0.0) for position in model_portfolio.positions) if model_portfolio else 0.0
-    current_unrealized_pnl = sum((position.unrealized_pnl or 0.0) for position in model_portfolio.positions) if model_portfolio else 0.0
     update_actions = [
         f"已刷新公开收盘价路径，Dashboard 行情/回测序列最新日期为 {dashboard_data_end}。",
         f"已套用本地模型盘市值档 {portfolio_market_date}（{market_mode_text}），当前持仓市值 {format_twd(current_market_value)}，未实现盈亏 {format_twd(current_unrealized_pnl)}。",
-        f"已复核策略监控：待复核调仓 {len(actionable_signals)} 笔，已落账模拟成交 {execution_trade_count} 笔，红色卖出建议不会重复显示已落账标的。",
+        f"已检查策略监控：待自动落账调仓 {len(actionable_signals)} 笔，已落账模拟成交 {execution_trade_count} 笔，红色卖出建议不会重复显示已落账标的。",
         "公网发布后以首页正文、/healthz、/version.json 与 ETag / X-Dashboard-Version 一致性作为完成标准；本地线程只保留极简状态。",
     ]
     next_steps = [
         "下一交易日继续用公开收盘价刷新 Dashboard，并把公网首页正文作为发布完成标准。",
         f"继续观察是否走满 {backtest.step if backtest else DEFAULT_REBALANCE_STEP} 个共同交易日；当前预计下次回测调仓为 {estimated_next_rebalance_date}。",
-        "短期重点看 AI 供应链风险贡献是否继续高于权重，并复核新的模拟盘调仓是否已经自动落账。",
+        "短期重点看 AI 供应链风险贡献是否继续高于权重，并确认新的模拟盘调仓是否已经自动落账。",
     ]
     update_summary_html = f"""
       <section id="update-summary" class="section panel">
@@ -3312,7 +3351,7 @@ def render_dashboard(
           {taiex_cards}
           <div class="card"><div class="metric">{html.escape(dashboard_data_end)}</div><p class="metric-label">行情/回测最新日</p></div>
           <div class="card"><div class="metric">{html.escape(portfolio_market_date)}</div><p class="metric-label">模型盘市值日</p></div>
-          <div class="card"><div class="metric">{len(actionable_signals)}</div><p class="metric-label">待复核调仓</p></div>
+          <div class="card"><div class="metric">{len(actionable_signals)}</div><p class="metric-label">待自动落账</p></div>
         </div>
         <div class="table-grid">
           <div>
@@ -3324,7 +3363,7 @@ def render_dashboard(
             <ul class="risk-list update-summary-list">{''.join(f'<li>{html.escape(item)}</li>' for item in next_steps)}</ul>
           </div>
         </div>
-        <p class="footer-note">本区承接每日收盘自动化结果；详细状态看 Dashboard，自动化线程只保留极简更新或异常提示。本区只用于研究与本地 paper portfolio 复核，不代表实盘委托或投资建议。</p>
+        <p class="footer-note">本区承接每日收盘自动化结果；详细状态看 Dashboard，自动化线程只保留极简更新或异常提示。本区只用于研究与本地 paper portfolio 审计，不代表实盘委托或投资建议。</p>
       </section>
 """
     rebalance_execution_calendar_html = f"""
@@ -3385,7 +3424,7 @@ def render_dashboard(
             <span class="eyebrow">Decision Brief</span>
             <h2>本轮风险归因与调仓摘要</h2>
           </div>
-          <span class="status-pill">{len(actionable_signals)} 笔待复核</span>
+          <span class="status-pill">{len(actionable_signals)} 笔待自动落账</span>
         </div>
         <div class="analysis-note"><b>主要风险：</b>收缩协方差下最大风险贡献来自 {html.escape(symbols[top_shrink_risk_index])}，贡献 {format_percent(shrink_rc[top_shrink_risk_index])}；最高相关资产对为 {html.escape(max_pair_text)}。这些项目用于识别同源风险，不代表个股买卖建议。</div>
         <div class="analysis-note"><b>压力情境：</b>规则压力测试下，普通协方差估计损失约 {format_percent(abs(sample_stress))}，收缩协方差估计损失约 {format_percent(abs(shrink_stress))}。这是解释型压力口径，不是未来预测。</div>
@@ -3480,7 +3519,7 @@ def render_dashboard(
 """
     if trade_signals:
         settled_signal_count = sum(1 for signal in trade_signals if "已落账" in signal.reason)
-        signal_status_text = f"{len(actionable_signals)} 笔待复核"
+        signal_status_text = f"{len(actionable_signals)} 笔待自动落账"
         if settled_signal_count:
             signal_status_text += f" / {settled_signal_count} 笔已落账"
         signal_rows = "\n".join(
@@ -3508,7 +3547,7 @@ def render_dashboard(
         </div>
         <span class="status-pill">{html.escape(signal_status_text)}</span>
       </div>
-      <p>{signal_summary} 表格只保留决策复核需要的核心栏位；趋势、RSI、量能和多因子分数仍在规则内部计算，只生成虚拟盘动作，不会连接券商。</p>
+      <p>{signal_summary} 表格只保留自动落账审计需要的核心栏位；趋势、RSI、量能和多因子分数仍在规则内部计算，只生成虚拟盘动作，不会连接券商。</p>
       <div class="analysis-note"><b>訊號口徑：</b>「觀察」代表未進入本輪待處理清單；「建議買入 / 建議賣出」只代表本地模擬盤动作，不會送到券商。若標的顯示「本日模擬調倉已落帳」，表示同一交易日已有本地 CSV 紀錄，系統會避免重複列為待復核清單。</div>
       <div class="analysis-note"><b>本轮调仓解释：</b>{html.escape(trade_reason_summary)} {html.escape(trade_reason_boundary)}</div>
       <table class="metric-table signal-table">
@@ -3574,11 +3613,11 @@ def render_dashboard(
         default_trade_state_json = json.dumps(default_trade_state, ensure_ascii=False)
         if actionable_signals:
             manual_trade_rows = "\n".join(
-                f"<tr data-symbol=\"{html.escape(signal.symbol)}\" data-trade-id=\"{html.escape(signal.trade_id)}\"><td><span class=\"trade-status\" data-trade-status=\"{html.escape(signal.trade_id)}\">待复核</span></td><td>{'买入' if signal.status == 'buy' else '卖出'}</td><td>{html.escape(signal.symbol)}<div class=\"trade-id\">单号：{html.escape(signal.trade_id)}</div></td><td class=\"name-cell\"><span class=\"asset-name\">{html.escape(signal.name)}</span></td><td>{signal.latest_price:.2f}</td><td>{'' if signal.proposed_shares is None else f'{signal.proposed_shares:,}'}</td><td>{'' if signal.proposed_shares is None else format_twd(signal.latest_price * signal.proposed_shares)}</td><td>自动流程</td><td>CSV 落账</td><td><button class=\"trade-button\" type=\"button\" data-trade-toggle=\"{html.escape(signal.trade_id)}\">页面标记已复核</button></td></tr>"
+                f"<tr data-symbol=\"{html.escape(signal.symbol)}\" data-trade-id=\"{html.escape(signal.trade_id)}\"><td><span class=\"trade-status\" data-trade-status=\"{html.escape(signal.trade_id)}\">待自动落账</span></td><td>{'买入' if signal.status == 'buy' else '卖出'}</td><td>{html.escape(signal.symbol)}<div class=\"trade-id\">单号：{html.escape(signal.trade_id)}</div></td><td class=\"name-cell\"><span class=\"asset-name\">{html.escape(signal.name)}</span></td><td>{signal.latest_price:.2f}</td><td>{'' if signal.proposed_shares is None else f'{signal.proposed_shares:,}'}</td><td>{'' if signal.proposed_shares is None else format_twd(signal.latest_price * signal.proposed_shares)}</td><td>自动流程</td><td>CSV 落账</td><td><button class=\"trade-button\" type=\"button\" data-trade-toggle=\"{html.escape(signal.trade_id)}\">页面标记已审计</button></td></tr>"
                 for signal in actionable_signals
             )
         else:
-            manual_trade_rows = '<tr><td colspan="10" class="empty-order-cell">目前没有待复核的模拟调仓单。初始建仓单已归入持仓与盈亏统计；若本日建议已通过自动脚本落账，会从待复核清单移除，并反映到模拟持仓。若策略监控表仍有观察标的，请看触发原因栏；它们通常是连续天数、趋势、RSI、量能或建仓后报酬尚未同时达标。</td></tr>'
+            manual_trade_rows = '<tr><td colspan="10" class="empty-order-cell">目前没有待自动落账的模拟调仓单。初始建仓单已归入持仓与盈亏统计；若本日建议已通过自动脚本落账，会从待自动落账清单移除，并反映到模拟持仓。若策略监控表仍有观察标的，请看触发原因栏；它们通常是连续天数、趋势、RSI、量能或建仓后报酬尚未同时达标。</td></tr>'
         manual_trade_html = f"""
     <section id="manual-trading" class="section panel">
       <div class="section-heading">
@@ -3587,17 +3626,17 @@ def render_dashboard(
           <h2>模拟盘自动执行记录</h2>
         </div>
         <div class="trade-actions">
-          <button id="mark-all-trades" class="trade-button primary" type="button">全部标记已复核</button>
+          <button id="mark-all-trades" class="trade-button primary" type="button">全部标记已审计</button>
           <button id="reset-trade-status" class="trade-button" type="button">重置状态</button>
         </div>
       </div>
-      <p>这里是本地模拟盘调仓审计清单。收盘自动化会带 <code>--execute-simulated-trades</code> 把动作写入本地 CSV；页面按钮只在当前浏览器记录复核状态，不连接券商、不送出真实订单。</p>
+      <p>这里是本地模拟盘调仓审计清单。收盘自动化会带 <code>--execute-simulated-trades</code> 把动作写入本地 CSV；页面按钮只在当前浏览器记录审计状态，不连接券商、不送出真实订单。</p>
 {trade_batch_status_html}
       <table class="metric-table">
-        <thead><tr><th>状态</th><th>方向</th><th>代码</th><th>名称</th><th>参考价</th><th>股数</th><th>估算金额</th><th>执行</th><th>记录</th><th>复核</th></tr></thead>
+        <thead><tr><th>状态</th><th>方向</th><th>代码</th><th>名称</th><th>参考价</th><th>股数</th><th>估算金额</th><th>执行</th><th>记录</th><th>审计</th></tr></thead>
         <tbody>{manual_trade_rows}</tbody>
       </table>
-      <p class="footer-note">执行规则：收盘流程自动写入本地模拟成交 CSV。默认批次为 01，同一交易日、同一标的、同一方向重复落账会保持幂等；只有明确使用新的模拟成交批次号时，才视为同日分批。点击“重置状态”只恢复浏览器里的复核状态，不会送出、撤回或修改任何真实订单。</p>
+      <p class="footer-note">执行规则：收盘流程自动写入本地模拟成交 CSV。默认批次为 01，同一交易日、同一标的、同一方向重复落账会保持幂等；只有明确使用新的模拟成交批次号时，才视为同日分批。点击“重置状态”只恢复浏览器里的审计状态，不会送出、撤回或修改任何真实订单。</p>
     </section>
 """
         market_mode_label = (
@@ -3695,7 +3734,7 @@ def render_dashboard(
           <div class="split-row"><span>收盘持仓市值</span><b>{format_twd(current_market_total)}</b></div>
           <div class="split-row"><span>未实现盈亏</span><b>{format_twd(current_pnl_total)}</b></div>
           <div class="split-row"><span>盈亏率</span><b>{format_percent(current_pnl_pct, signed=True)}</b></div>
-          <div class="split-row"><span>待复核调仓</span><b>{len(actionable_signals)} 笔</b></div>
+          <div class="split-row"><span>待自动落账</span><b>{len(actionable_signals)} 笔</b></div>
           <div class="split-row"><span>本日模拟成交</span><b>{execution_trade_count} 笔</b></div>
         </div>
         <div class="side-card">
@@ -3732,14 +3771,14 @@ def render_dashboard(
         current_market_total_check = sum(position.current_market_value or 0.0 for position in model_portfolio.positions)
         current_pnl_total_check = sum(position.unrealized_pnl or 0.0 for position in model_portfolio.positions)
         current_pnl_pct_check = current_pnl_total_check / total_buy_cost_check if total_buy_cost_check else 0.0
-        integer_status = "全部持仓为整数股" if all(float(position.shares or 0).is_integer() for position in model_portfolio.positions) else "存在非整数股，请复核"
+        integer_status = "全部持仓为整数股" if all(float(position.shares or 0).is_integer() for position in model_portfolio.positions) else "存在非整数股，请检查"
         market_check_status = "已套用 13:30 最后成交价" if current_market_total_check else "尚未套用今日收盘价"
         execution_check_html = f"""
       <section id="execution-check" class="check-panel" aria-live="polite">
         <div class="section-heading">
           <div>
             <span class="eyebrow">Execution Review</span>
-            <h2>自动执行复核</h2>
+            <h2>自动执行检查</h2>
           </div>
           <span class="status-pill">{html.escape(model_portfolio.execution_price_status)}</span>
         </div>
@@ -4233,7 +4272,7 @@ def render_dashboard(
           <span>行情最新 {html.escape(dashboard_data_end)}</span>
           <span>估计窗口 {backtest.window if backtest else DEFAULT_REBALANCE_WINDOW} 日</span>
           <span>调仓间隔 {backtest.step if backtest else DEFAULT_REBALANCE_STEP} 日</span>
-          <button id="execution-check-button" class="action-button" type="button" aria-expanded="false" aria-controls="execution-check">执行复核</button>
+          <button id="execution-check-button" class="action-button" type="button" aria-expanded="false" aria-controls="execution-check">执行检查</button>
         </div>
       </div>
 {execution_check_html}
@@ -4243,7 +4282,7 @@ def render_dashboard(
         <div class="hero-content">
           <div>
             <div class="eyebrow">台灣股市穩健量化引擎</div>
-            <p class="lead">本仪表盘比较普通样本协方差与收缩协方差下的最小方差组合，并把虚拟盘执行状态固定在右侧，方便从研究结果走到自动落账与复核。</p>
+            <p class="lead">本仪表盘比较普通样本协方差与收缩协方差下的最小方差组合，并把虚拟盘执行状态固定在右侧，方便从研究结果走到自动落账与审计。</p>
             <div class="insight-strip">
               <div class="insight"><b>最高相关资产对</b><span>{html.escape(max_pair_text)}</span></div>
               <div class="insight"><b>集中度变化</b><span>{concentration_delta * 100:+.2f}%</span></div>
@@ -4345,7 +4384,7 @@ def render_dashboard(
         button.addEventListener("click", () => {{
           const isOpen = panel.classList.toggle("is-open");
           button.setAttribute("aria-expanded", String(isOpen));
-          button.textContent = isOpen ? "收起执行复核" : "执行复核";
+          button.textContent = isOpen ? "收起执行检查" : "执行检查";
           if (isOpen) {{
             panel.scrollIntoView({{ behavior: "smooth", block: "start" }});
           }}
@@ -4367,9 +4406,9 @@ def render_dashboard(
         const status = document.querySelector(`[data-trade-status="${{tradeId}}"]`);
         const toggle = document.querySelector(`[data-trade-toggle="${{tradeId}}"]`);
         if (!status || !toggle) return;
-        status.textContent = done ? "页面已复核" : "待复核";
+        status.textContent = done ? "页面已审计" : "待自动落账";
         status.classList.toggle("done", done);
-        toggle.textContent = done ? "改回待复核" : "页面标记已复核";
+        toggle.textContent = done ? "改回待自动落账" : "页面标记已审计";
         toggle.classList.toggle("done", done);
         document.querySelectorAll(`tr[data-trade-id="${{tradeId}}"]`).forEach((row) => {{
           row.classList.toggle("trade-done", done);
@@ -4610,7 +4649,7 @@ def main() -> None:
                 issues.append(
                     DataIssue(
                         "SIMULATED_TRADES",
-                        f"已落账模拟成交 {trade_count} 笔，批次 {trade_batch_seq}：{display_path(trade_path)}；已更新模拟持仓：{display_path(positions_path)}",
+                        f"本轮新增模拟成交 {trade_count} 笔，批次 {trade_batch_seq}：{display_path(trade_path)}；已更新模拟持仓：{display_path(positions_path)}",
                     )
                 )
                 execution_orders = load_model_execution_orders(args.simulated_positions_output or DEFAULT_SIMULATED_POSITIONS_OUTPUT)

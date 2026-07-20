@@ -6,6 +6,9 @@
 
 ## 二、当前状态
 
+- 2026-07-20 已修复用户反馈的 Dashboard `暂不可用` / `待复核` / `等待行情` 问题：独立 TWSE 加权指数接口失败时改用模型盘持仓市值、未实现盈亏与模拟成交状态兜底；极小目标权重但无模拟持仓的标的不再进入持仓表；用户可见文案改为“待自动落账 / 页面审计”。
+- 2026-07-20 `--execute-simulated-trades` 已修复为同时自动落账买入和卖出；本轮补落账 `0056` 买入 `55` 股、`00919` 买入 `96` 股，今日本地模拟成交合计 `5` 笔，Dashboard 显示 `0 笔待自动落账 / 5 笔已落账`。
+- 2026-07-20 修复后正式页面中 `暂不可用`、`等待行情`、`待执行价`、`待复核` 均为 `0` 次；QA 基线同步为 `AI 供应链权重 30.90%`、`风险贡献 50.76%`、`风险-权重差 +19.87%`、`trade_status=settled_5`，`run_local_qa_checks.py --skip-dashboard-fixture` 通过。
 - 2026-07-20 已按 TWSE 官方 2026 年休市资料确认交易日，并完成本地收盘日更；本轮未读取 `.env`、`.shioaji.local.env`、API key 或 token，未调用券商下单。
 - 2026-07-20 正式重建使用 `public-close + close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades + --offline-cache --allow-stale-cache`，耗时 `real 49.27`；Dashboard 更新日期、行情/回测序列最新日期与模型盘市值日均为 `2026-07-20`。
 - 2026-07-20 生成 `data/model_portfolio_market_2026-07-20.csv`，`quote_count=13`、`missing_count=0`；本地模拟盘自动落账 `3` 笔卖出：`0050` 30 股、`006208` 24 股、`00881` 88 股，最后模拟盘执行日 `2026-07-20`。

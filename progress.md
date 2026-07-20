@@ -4,6 +4,10 @@
 
 ### Actions
 
+- 已修复 Dashboard 自动落账与展示口径：`--execute-simulated-trades` 现在会在现金/持仓约束允许时同时落账买入和卖出；本轮补落账 `0056` 买入 `55` 股、`00919` 买入 `96` 股，`data/simulated_trades_2026-07-20.csv` 现为 `5` 笔已执行模拟成交。
+- 已修复首屏 `暂不可用` 问题：独立 TWSE 加权指数接口失败时，不再显示三张不可用卡片，改用模型盘持仓市值、未实现盈亏与已落账模拟成交作为 Summary fallback；正式页面中 `暂不可用`、`等待行情`、`待执行价`、`待复核` 均为 `0` 次。
+- 已把用户可见的“待复核调仓”口径改为“待自动落账 / 页面审计”，避免误导成需要 Tony 手动批准；当前 Dashboard 显示 `0 笔待自动落账 / 5 笔已落账`。
+- 已同步 QA 基线和 iCloud Obsidian `台股量化基金.md` 最新研究摘要：`AI 供应链权重 30.90%`、`风险贡献 50.76%`、`风险-权重差 +19.87%`、`trade_status=settled_5`。
 - 已按 TWSE 2026 年休市资料确认 `2026-07-20` 为周一交易日，执行 `public-close + market-mode close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades`，本轮未读取 `.env`、`.shioaji.local.env`、API key 或 token，未调用券商下单。
 - 正式重建用 `--offline-cache --allow-stale-cache`，用时 `real 49.27`，Dashboard 更新日期、行情/回测序列最新日期与模型盘市值日均推进到 `2026-07-20`。
 - 已生成 `data/model_portfolio_market_2026-07-20.csv` 与 summary，`quote_count=13`、`missing_count=0`；本地模拟盘自动落账 `3` 笔卖出：`0050` 30 股、`006208` 24 股、`00881` 88 股，生成 `data/simulated_trades_2026-07-20.csv`、`data/simulated_positions_2026-07-20.csv` 并刷新 `data/simulated_positions_latest.csv`。
