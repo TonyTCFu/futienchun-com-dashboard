@@ -1,5 +1,33 @@
 # Loop Engineering Progress
 
+## 2026-07-20 每日收盘自动化
+
+### Actions
+
+- 已按 TWSE 2026 年休市资料确认 `2026-07-20` 为周一交易日，执行 `public-close + market-mode close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades`，本轮未读取 `.env`、`.shioaji.local.env`、API key 或 token，未调用券商下单。
+- 正式重建用 `--offline-cache --allow-stale-cache`，用时 `real 49.27`，Dashboard 更新日期、行情/回测序列最新日期与模型盘市值日均推进到 `2026-07-20`。
+- 已生成 `data/model_portfolio_market_2026-07-20.csv` 与 summary，`quote_count=13`、`missing_count=0`；本地模拟盘自动落账 `3` 笔卖出：`0050` 30 股、`006208` 24 股、`00881` 88 股，生成 `data/simulated_trades_2026-07-20.csv`、`data/simulated_positions_2026-07-20.csv` 并刷新 `data/simulated_positions_latest.csv`。
+- Dashboard “每日更新 Summary” 已呈现 2026-07-20 本轮结果；当前策略监控待复核调仓 `2` 笔，均为买入，页面可见 `建议卖出=0`。
+- 已同步 iCloud Obsidian `台股量化基金.md` 最新研究摘要，并更新 `scripts/validate_research_brief_metrics.py` 的 QA 基线为 `pending_buy_2_sell_0`。
+
+### Verification Log
+
+- 已执行：`PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py scripts/validate_research_brief_metrics.py scripts/validate_research_brief_sync.py scripts/export_research_brief_markdown.py scripts/validate_legacy_trade_batch_status.py`，结果通过。
+- 已执行：`PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 scripts/run_local_qa_checks.py --skip-dashboard-fixture`，结果输出 `local_qa_checks_ok`。
+- 本地 Dashboard hash 为 `b87ecf9916ad2af73ed619aadd6fe3bb0a56bc18189ba66c659be190566a8a4e`；发布后仍需以公网首页正文、`/healthz`、`/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 作最终完成判定。
+
+## 2026-07-17 自动化摘要投递规则再确认
+
+### Actions
+
+- 已按用户纠正补强项目规则：每日摘要和复核/漏跑补偿摘要都不要发送到本地对话框，详细内容直接进入公网 Dashboard 的每日更新 Summary、交接文档和 automation memory。
+- 已补充公网发布完成定义：推送 Dashboard 时必须同步刷新并验收缓存版本，确认 `/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 均匹配新 `dashboard/index.html` 内容 hash。
+- 已同步 `MEMORY.md`、`README.md`、`findings.md` 和 `.codex/PROJECT_CONTEXT.md`；本轮未重建 Dashboard、未写 data CSV、未提交或推送。
+
+### Verification Log
+
+- 已执行文档检索，确认新规则命中“watchdog review summaries”“复核/漏跑补偿自动化”“缓存版本”“`/version.json`、`ETag` 与 `X-Dashboard-Version`”等关键口径。
+
 ## 2026-07-17 自动化输出偏好调整
 
 ### Actions
@@ -7,12 +35,16 @@
 - 已按用户偏好更新 `dashboard` 自动化：每日收盘后以公网 Dashboard 已更新作为完成标准，不再把完整交易日/非交易日摘要发回本地设备对话框。
 - Dashboard 的更新摘要区改名为“每日更新 Summary”，并补充公网验收口径：首页正文、`/healthz`、`/version.json` 与 `ETag` / `X-Dashboard-Version` 一致性。
 - 已同步 `MEMORY.md` 与 `README.md`，记录“详细结果进 Dashboard，线程只保留极简状态”的长期规则。
+- Workspace 提交 `d0dd3f0` 已推送到 `origin/main`；部署仓库提交 `0aa99b2` 已推送到 `futienchun-com-dashboard/main`。
+- 公网验证通过：Render 首页正文第 4 轮切到新版本，已命中 `每日更新 Summary` 与 `本地线程只保留极简状态`，`/healthz=ok`，首页 `X-Dashboard-Version`、`ETag` 与 `/version.json` 一致为 `082970e75e62b1e54cf57c700db88ce1920b050f6740098b8b6a75a050d801ca`。
 
 ### Verification Log
 
 - `PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 -m py_compile src/risk_dashboard.py` 通过。
 - 短区间临时 Dashboard 冒烟通过：`python3 src/risk_dashboard.py --start 2024-01 --end 2024-06 --offline-cache --allow-stale-cache --output /tmp/tw_quant_summary_smoke.html`。
 - 临时 Dashboard 命中 `每日更新 Summary`、`公网验收 / 已做事项 / 短期下一步`、`本地线程只保留极简状态`。
+- 正式 Dashboard 重建后，`PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 scripts/run_local_qa_checks.py --skip-dashboard-fixture` 通过，研究摘要基线同步为 `AI 供应链权重 31.25%`、`风险贡献 51.18%`、`风险-权重差 +19.93%`。
+- 公网发布验证通过：正文包含 `每日更新 Summary`，`/healthz=ok`，缓存版本 `082970e75e62b1e54cf57c700db88ce1920b050f6740098b8b6a75a050d801ca` 一致。
 
 ## 2026-07-17 收盘日更
 

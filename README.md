@@ -278,7 +278,9 @@ python scripts/serve_dashboard.py --host 0.0.0.0 --port 8000
 
 The `dashboard` automation runs after the Taiwan market close. It must first determine whether Taiwan equities are open. On weekends or exchange holidays, it must not rebuild the Dashboard, write paper-trading files, or publish. On trading days, the automation rebuilds, publishes, and verifies the public Dashboard body, `/healthz`, `/version.json`, and the home-page `ETag` / `X-Dashboard-Version`.
 
-The public Dashboard is the report surface. Detailed daily results should be visible in the Dashboard daily update summary and handoff docs; the Codex thread should only receive a minimal status such as public update complete or the exact blocker.
+The public Dashboard is the report surface. Detailed daily results and watchdog review summaries should be visible in the Dashboard daily update summary and handoff docs; the Codex thread should only receive a minimal status such as public update complete or the exact blocker.
+
+Every public publish must update the Dashboard content hash and verify the cache version at the same time. Treat the publish as incomplete until `/version.json`, `ETag`, and `X-Dashboard-Version` all match the newly published `dashboard/index.html`.
 
 ```bash
 export DASHBOARD_BASIC_AUTH_USER="dashboard"

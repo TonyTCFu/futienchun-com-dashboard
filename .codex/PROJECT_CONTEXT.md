@@ -6,7 +6,15 @@
 
 ## 二、当前状态
 
-- 2026-07-17 用户更新偏好：每日收盘自动化只需确认云端 Dashboard 已更新，不要再把完整更新摘要发回本地设备对话框；详细结果应进入 Dashboard “每日更新 Summary”、项目交接文档和 automation memory，线程只保留极简状态或失败点。
+- 2026-07-20 已按 TWSE 官方 2026 年休市资料确认交易日，并完成本地收盘日更；本轮未读取 `.env`、`.shioaji.local.env`、API key 或 token，未调用券商下单。
+- 2026-07-20 正式重建使用 `public-close + close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades + --offline-cache --allow-stale-cache`，耗时 `real 49.27`；Dashboard 更新日期、行情/回测序列最新日期与模型盘市值日均为 `2026-07-20`。
+- 2026-07-20 生成 `data/model_portfolio_market_2026-07-20.csv`，`quote_count=13`、`missing_count=0`；本地模拟盘自动落账 `3` 笔卖出：`0050` 30 股、`006208` 24 股、`00881` 88 股，最后模拟盘执行日 `2026-07-20`。
+- 2026-07-20 Dashboard “每日更新 Summary” 已显示本轮结果；当前待复核调仓 `2` 笔，均为买入，页面可见 `建议卖出=0`。
+- 2026-07-20 研究摘要 QA 基线为 `AI 供应链权重 31.25%`、`风险贡献 51.18%`、`风险-权重差 +19.93%`、`pending_buy_2_sell_0`；`scripts/run_local_qa_checks.py --skip-dashboard-fixture` 已通过，iCloud Obsidian `台股量化基金.md` 已同步。
+- 2026-07-20 本地 Dashboard hash 为 `b87ecf9916ad2af73ed619aadd6fe3bb0a56bc18189ba66c659be190566a8a4e`；公网发布完成仍需以首页正文、`/healthz`、`/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 一致性验收。
+- 2026-07-17 用户更新偏好：每日收盘自动化与复核/漏跑补偿自动化都只需确认云端 Dashboard 已更新，不要再把完整每日摘要或复核摘要发回本地设备对话框；详细结果应进入 Dashboard “每日更新 Summary”、项目交接文档和 automation memory，线程只保留极简状态或失败点。
+- 2026-07-17 公网 Dashboard 发布必须同时更新并验收缓存版本；发布不只看正文，还要确认 `/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 都匹配新 `dashboard/index.html` 内容 hash。
+- 2026-07-17 已把 Dashboard 更新摘要区改名为“每日更新 Summary”，并验证公网正文已切到新版本；缓存版本 `082970e75e62b1e54cf57c700db88ce1920b050f6740098b8b6a75a050d801ca` 与首页 `ETag` / `X-Dashboard-Version`、`/version.json` 一致。
 - 2026-07-17 已按 TWSE 官方 2026 年休市 API 确认交易日，并完成收盘日更；本轮未读取 `.env`、`.shioaji.local.env`、API key 或 token，未调用券商下单。
 - 2026-07-17 初次 public-close 重建时，TWSE 月资料仍分批更新，006208、2317、2412 尚未到 `115/07/17`，导致行情/回测共同日仍停在 `2026-07-16`；待 15 檔均补齐后，最终用 `--offline-cache --allow-stale-cache` 绕过旧聚合矩阵缓存并读取刷新后的月缓存。
 - 2026-07-17 最终 Dashboard 更新日期与行情/回测序列最新日期均为 `2026-07-17`；生成 `data/model_portfolio_market_2026-07-17.csv`，`quote_count=13`、`missing_count=0`，当前持仓市值 `NT$264,715.26`、未实现盈亏 `NT$-8,770.80`。

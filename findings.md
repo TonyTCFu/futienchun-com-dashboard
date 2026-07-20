@@ -1,10 +1,23 @@
 # Loop Engineering Findings
 
+## 2026-07-20 收盘日更
+
+- TWSE 官方 2026 年休市资料确认 `2026-07-20` 为交易日；本轮按交易日流程执行，未触碰敏感配置或券商交易端。
+- `public-close + close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades` 正式重建成功，并带 `--offline-cache --allow-stale-cache` 避免旧聚合矩阵缓存卡住当日月缓存。
+- 最终 Dashboard 更新日期、行情/回测序列最新日期和模型盘市值日均为 `2026-07-20`；正式市值档 `data/model_portfolio_market_2026-07-20.csv` 的 `quote_count=13`、`missing_count=0`。
+- 本地模拟盘本轮自动落账 `3` 笔卖出：`0050` 30 股、`006208` 24 股、`00881` 88 股；最后模拟盘执行日为 `2026-07-20`。
+- Dashboard “每日更新 Summary” 已显示本轮结果；策略监控当前待复核调仓 `2` 笔，均为买入，页面可见 `建议卖出=0`。
+- 研究摘要 QA 基线同步为 `AI 供应链权重 31.25%`、`风险贡献 51.18%`、`风险-权重差 +19.93%`、`pending_buy_2_sell_0`；iCloud Obsidian `台股量化基金.md` 已同步。
+- 本地 QA 已通过；公网发布完成仍需以首页正文、`/healthz`、`/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 一致性验收为准。
+
 ## 2026-07-17 自动化输出偏好调整
 
 - 后续 `dashboard` 每日收盘自动化不再把完整摘要发回本地对话框；用户只需要确认云端 Dashboard 已更新。
+- 同一规则也适用于 `dashboard-4` 漏跑补偿/复核自动化：复核摘要不发回本地对话框，详细复核结果进入 Dashboard、交接文档和 automation memory。
 - 详细结果的主展示面改为 Dashboard “每日更新 Summary”：包含本轮日期、行情日期、回测日期、模拟盘状态、待复核买卖、公网健康与缓存版本口径。
+- 每次推送公网 Dashboard 都必须同步刷新并验收缓存版本；`/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 必须和新页面内容 hash 一致。
 - 线程最终回复应保持极简，只报告公网更新完成或异常失败点；自动化记忆和项目交接文档继续保留可追溯细节。
+- 本轮已验证公网 Dashboard 正文包含 `每日更新 Summary`；缓存版本为 `082970e75e62b1e54cf57c700db88ce1920b050f6740098b8b6a75a050d801ca`，与首页 `ETag` / `X-Dashboard-Version` 和 `/version.json` 一致。
 
 ## 2026-07-17 收盘日更
 
