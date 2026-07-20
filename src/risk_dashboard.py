@@ -3242,13 +3242,13 @@ def render_dashboard(
     execution_trade_count = execution_summary.trade_count if execution_summary else 0
     execution_buy_count = execution_summary.buy_count if execution_summary else 0
     execution_sell_count = execution_summary.sell_count if execution_summary else 0
-    settled_batch_labels = "、".join(status.label for status in trade_batch_statuses if not status.is_legacy) or "暫無新格式批次"
+    settled_batch_labels = "、".join(status.label for status in trade_batch_statuses if not status.is_legacy) or "暂无新格式批次"
     legacy_batch_status = next((status for status in trade_batch_statuses if status.is_legacy), None)
-    legacy_batch_text = f"舊格式 {legacy_batch_status.trade_count} 筆" if legacy_batch_status else "無舊格式紀錄"
+    legacy_batch_text = f"旧格式 {legacy_batch_status.trade_count} 笔" if legacy_batch_status else "无旧格式记录"
     pending_batch_text = (
-        f"批次 {trade_batch_seq} 待復核 {len(actionable_signals)} 筆"
+        f"批次 {trade_batch_seq} 待自动落账 {len(actionable_signals)} 笔"
         if actionable_signals
-        else f"目前批次 {trade_batch_seq} 暫無待復核單"
+        else f"目前批次 {trade_batch_seq} 没有待自动落账单"
     )
     if trade_batch_statuses:
         batch_rows = "\n".join(
@@ -3256,16 +3256,16 @@ def render_dashboard(
                 f"<tr><td>{html.escape(status.label)}</td><td>{status.trade_count}</td>"
                 f"<td>{html.escape('、'.join(status.symbols) or '未记录')}</td>"
                 f"<td>{html.escape('、'.join(status.actions) or '未记录')}</td>"
-                f"<td>{'舊成交 CSV 無 trade_id，按交易日、標的、方向相容防重' if status.is_legacy else '新格式 trade_id 已帶批次，可支援明確分批'}</td></tr>"
+                f"<td>{'旧成交 CSV 无 trade_id，按交易日、标的、方向相容防重' if status.is_legacy else '新格式 trade_id 已带批次，可支援明确分批'}</td></tr>"
             )
             for status in trade_batch_statuses
         )
     else:
-        batch_rows = '<tr><td colspan="5" class="empty-order-cell">本交易日尚無本地模擬成交 CSV 紀錄。</td></tr>'
+        batch_rows = '<tr><td colspan="5" class="empty-order-cell">本交易日尚无本地模拟成交 CSV 记录。</td></tr>'
     trade_batch_status_html = f"""
-      <div class="analysis-note"><b>模擬盤批次狀態小結：</b>目前批次為 {html.escape(trade_batch_seq)}；已寫入本地模擬成交 CSV 的批次：{html.escape(settled_batch_labels)}；舊格式紀錄：{html.escape(legacy_batch_text)}；目前待復核：{html.escape(pending_batch_text)}。收盤更新流程會用 Python 主腳本自動落帳本地模擬成交；頁面按鈕只做瀏覽器內復核標記。</div>
+      <div class="analysis-note compact-copy"><b>模拟盘批次：</b>{html.escape(settled_batch_labels)}；{html.escape(legacy_batch_text)}；{html.escape(pending_batch_text)}。收盘流程只写本地模拟成交 CSV，页面按钮只做浏览器内审计标记。</div>
       <table class="metric-table compact-table">
-        <thead><tr><th>已落帳批次</th><th>筆數</th><th>標的</th><th>方向</th><th>口徑</th></tr></thead>
+        <thead><tr><th>已落账批次</th><th>笔数</th><th>标的</th><th>方向</th><th>口径</th></tr></thead>
         <tbody>{batch_rows}</tbody>
       </table>
 """
@@ -3338,53 +3338,58 @@ def render_dashboard(
         "短期重点看 AI 供应链风险贡献是否继续高于权重，并确认新的模拟盘调仓是否已经自动落账。",
     ]
     update_summary_html = f"""
-      <section id="update-summary" class="section panel">
+      <section id="update-summary" class="section panel dashboard-brief">
         <div class="section-heading">
           <div>
             <span class="eyebrow">Daily Update Summary</span>
-            <h2>每日更新 Summary</h2>
+            <h2>今日状态</h2>
           </div>
-          <span class="status-pill">公网验收 / 已做事项 / 短期下一步</span>
+          <span class="status-pill">收盘更新 / 模拟盘已落账</span>
         </div>
-        <div class="analysis-note"><b>今天台股：</b>{html.escape(taiex_market_text)}</div>
-        <div class="metric-grid backtest-grid">
+        <div class="summary-rail">
+          <div class="summary-lead">
+            <span class="eyebrow-label">Market</span>
+            <strong>{html.escape(dashboard_data_end)}</strong>
+            <span>{html.escape(taiex_market_text)}</span>
+          </div>
           {taiex_cards}
-          <div class="card"><div class="metric">{html.escape(dashboard_data_end)}</div><p class="metric-label">行情/回测最新日</p></div>
-          <div class="card"><div class="metric">{html.escape(portfolio_market_date)}</div><p class="metric-label">模型盘市值日</p></div>
-          <div class="card"><div class="metric">{len(actionable_signals)}</div><p class="metric-label">待自动落账</p></div>
         </div>
-        <div class="table-grid">
-          <div>
-            <h3>已执行</h3>
-            <ul class="risk-list update-summary-list">{''.join(f'<li>{html.escape(item)}</li>' for item in update_actions)}</ul>
-          </div>
-          <div>
-            <h3>短期行动计划</h3>
-            <ul class="risk-list update-summary-list">{''.join(f'<li>{html.escape(item)}</li>' for item in next_steps)}</ul>
-          </div>
+        <div class="inline-metrics">
+          <div><span>模型盘市值日</span><b>{html.escape(portfolio_market_date)}</b></div>
+          <div><span>行情口径</span><b>{html.escape(market_mode_text)}</b></div>
+          <div><span>已落账模拟成交</span><b>{execution_trade_count} 笔</b></div>
+          <div><span>待自动落账</span><b>{len(actionable_signals)} 笔</b></div>
         </div>
-        <p class="footer-note">本区承接每日收盘自动化结果；详细状态看 Dashboard，自动化线程只保留极简更新或异常提示。本区只用于研究与本地 paper portfolio 审计，不代表实盘委托或投资建议。</p>
+        <div class="brief-grid">
+          <div class="brief-item"><b>已完成</b><span>{html.escape(update_actions[1])}</span></div>
+          <div class="brief-item"><b>调仓状态</b><span>{html.escape(trade_reason_summary)}</span></div>
+          <div class="brief-item"><b>下一步</b><span>{html.escape(next_steps[2])}</span></div>
+        </div>
+        <p class="footer-note">只读行情与本地 paper portfolio；不代表实盘委托或投资建议。</p>
       </section>
 """
     rebalance_execution_calendar_html = f"""
-      <section id="rebalance-calendar" class="section panel">
+      <section id="rebalance-calendar" class="section panel compact-calendar">
         <div class="section-heading">
           <div>
             <span class="eyebrow">Rebalance Calendar</span>
-            <h2>调仓与执行日历</h2>
+            <h2>调仓日历</h2>
           </div>
-          <span class="status-pill">回测调仓 / 模拟盘执行分开记录</span>
+          <span class="status-pill">回测节奏 / 模拟盘执行</span>
         </div>
-        <div class="analysis-note"><b>口径说明：</b>“回测调仓”是模型每 {backtest.step if backtest else DEFAULT_REBALANCE_STEP} 个共同交易日重新计算一次权重；“模拟盘执行调仓”是本地 paper portfolio 已经写入模拟成交 CSV 的买卖动作。你今天执行的卖出计入模拟盘执行调仓，但不会强行改写回测模型的 7 日重新估计节奏。{' ' + html.escape(rebalance_schedule_note) if rebalance_schedule_note else ''}</div>
-        <div class="metric-grid backtest-grid">
-          <div class="card"><div class="metric">{html.escape(last_rebalance_date)}</div><p class="metric-label">最后回测调仓日</p></div>
-          <div class="card"><div class="metric">{html.escape(estimated_next_rebalance_date)}</div><p class="metric-label">预计下次回测调仓</p></div>
-          <div class="card"><div class="metric">{trading_days_to_next_rebalance}</div><p class="metric-label">距下次还差交易日</p></div>
-          <div class="card"><div class="metric">{html.escape(execution_trade_date)}</div><p class="metric-label">最后模拟盘执行日</p></div>
-          <div class="card"><div class="metric">{execution_trade_count}</div><p class="metric-label">已落账模拟成交</p></div>
-          <div class="card"><div class="metric">{execution_sell_count}</div><p class="metric-label">其中卖出笔数</p></div>
+        <div class="timeline-grid">
+          <div><span>最后回测</span><b>{html.escape(last_rebalance_date)}</b></div>
+          <div><span>预计下次</span><b>{html.escape(estimated_next_rebalance_date)}</b></div>
+          <div><span>还差交易日</span><b>{trading_days_to_next_rebalance}</b></div>
+          <div><span>模拟盘执行</span><b>{html.escape(execution_trade_date)}</b></div>
+          <div><span>已落账</span><b>{execution_trade_count} 笔</b></div>
+          <div><span>买 / 卖</span><b>{execution_buy_count} / {execution_sell_count}</b></div>
         </div>
-        <div class="analysis-note"><b>本次执行记录：</b>{html.escape(execution_detail_text)}。买入 {execution_buy_count} 笔、卖出 {execution_sell_count} 笔；这些都只属于本地模拟盘，不是券商委托。</div>
+        <div class="execution-strip">
+          <b>本次模拟盘</b>
+          <span>{html.escape(execution_detail_text)}</span>
+        </div>
+        <p class="footer-note">回测权重每 {backtest.step if backtest else DEFAULT_REBALANCE_STEP} 个共同交易日重算；模拟盘成交只记录本地 CSV。{' ' + html.escape(rebalance_schedule_note) if rebalance_schedule_note else ''}</p>
       </section>
 """
     strategy_structure_text = ""
@@ -3548,7 +3553,7 @@ def render_dashboard(
         <span class="status-pill">{html.escape(signal_status_text)}</span>
       </div>
       <p>{signal_summary} 表格只保留自动落账审计需要的核心栏位；趋势、RSI、量能和多因子分数仍在规则内部计算，只生成虚拟盘动作，不会连接券商。</p>
-      <div class="analysis-note"><b>訊號口徑：</b>「觀察」代表未進入本輪待處理清單；「建議買入 / 建議賣出」只代表本地模擬盤动作，不會送到券商。若標的顯示「本日模擬調倉已落帳」，表示同一交易日已有本地 CSV 紀錄，系統會避免重複列為待復核清單。</div>
+      <div class="analysis-note"><b>讯号口径：</b>「观察」代表未进入本轮待处理清单；「建议买入 / 建议卖出」只代表本地模拟盘动作，不会送到券商。若标的显示「本日模拟调仓已落账」，表示同一交易日已有本地 CSV 记录，系统会避免重复列为待自动落账清单。</div>
       <div class="analysis-note"><b>本轮调仓解释：</b>{html.escape(trade_reason_summary)} {html.escape(trade_reason_boundary)}</div>
       <table class="metric-table signal-table">
         <colgroup>
@@ -3584,7 +3589,7 @@ def render_dashboard(
         }
         method_label = method_labels.get(model_portfolio.method, model_portfolio.method)
         lookback_label = f"{model_portfolio.lookback_years} 年" if model_portfolio.lookback_years else "可用"
-        execution_status = "待执行价" if model_portfolio.execution_price_status == "pending_open_price" else "已取得执行价"
+        execution_status = "待收盘价入账" if model_portfolio.execution_price_status == "pending_open_price" else "已取得收盘价"
         target_total = sum(position.target_value for position in model_portfolio.positions)
         total_commission = sum(position.buy_commission or 0.0 for position in model_portfolio.positions)
         total_future_sell_tax = sum(position.future_sell_tax or 0.0 for position in model_portfolio.positions)
@@ -3604,7 +3609,7 @@ def render_dashboard(
             else "尚未套用今日行情快照；回撤、回测与策略监控仍使用当前历史资料。"
         )
         model_rows = "\n".join(
-            f"<tr><td>{html.escape(position.symbol)}</td><td class=\"name-cell\"><span class=\"asset-name\">{html.escape(position.name)}</span></td><td>{'待执行价' if position.price is None else f'{position.price:.2f}'}</td><td>{'等待行情' if position.current_price is None else f'{position.current_price:.2f}'}</td><td>{'待执行价' if position.shares is None else f'{position.shares:,}'}</td><td>{'待执行价' if position.market_value is None else format_twd(position.market_value)}</td><td>{'等待行情' if position.current_market_value is None else format_twd(position.current_market_value)}</td><td>{'等待行情' if position.unrealized_pnl is None else format_twd(position.unrealized_pnl)}</td><td>{'' if position.unrealized_pnl_pct is None else format_percent(position.unrealized_pnl_pct)}</td><td>{format_percent(position.target_weight)}</td><td>{format_twd(position.target_value)}</td><td>{'' if position.buy_commission is None else format_twd(position.buy_commission)}</td></tr>"
+            f"<tr><td>{html.escape(position.symbol)}</td><td class=\"name-cell\"><span class=\"asset-name\">{html.escape(position.name)}</span></td><td>{'待收盘价入账' if position.price is None else f'{position.price:.2f}'}</td><td>{'无当日收盘价' if position.current_price is None else f'{position.current_price:.2f}'}</td><td>{'待收盘价入账' if position.shares is None else f'{position.shares:,}'}</td><td>{'待收盘价入账' if position.market_value is None else format_twd(position.market_value)}</td><td>{'无当日收盘价' if position.current_market_value is None else format_twd(position.current_market_value)}</td><td>{'无当日收盘价' if position.unrealized_pnl is None else format_twd(position.unrealized_pnl)}</td><td>{'' if position.unrealized_pnl_pct is None else format_percent(position.unrealized_pnl_pct)}</td><td>{format_percent(position.target_weight)}</td><td>{format_twd(position.target_value)}</td><td>{'' if position.buy_commission is None else format_twd(position.buy_commission)}</td></tr>"
             for position in model_portfolio.positions
         )
         default_trade_state = {}
@@ -3651,7 +3656,7 @@ def render_dashboard(
             if model_portfolio.market_mode == "close"
             else "台湾股市进行中"
             if model_portfolio.market_mode == "intraday"
-            else "等待行情更新"
+            else "等待收盘价入账"
         )
         model_html = f"""
     <section class="section panel">
@@ -3696,7 +3701,7 @@ def render_dashboard(
             f"<li><span>{html.escape(position.symbol)}</span><b>{format_percent(position.target_weight)}</b><small>{format_twd(position.target_value)}</small></li>"
             for position in sidebar_positions
         )
-        execution_status = "待执行价" if model_portfolio.execution_price_status == "pending_open_price" else "已取得执行价"
+        execution_status = "待收盘价入账" if model_portfolio.execution_price_status == "pending_open_price" else "已取得收盘价"
         execution_hint = (
             "录入今日开盘价或实际成交价后，再换算整数股。"
             if model_portfolio.execution_price_status == "pending_open_price"
@@ -3777,8 +3782,8 @@ def render_dashboard(
       <section id="execution-check" class="check-panel" aria-live="polite">
         <div class="section-heading">
           <div>
-            <span class="eyebrow">Execution Review</span>
-            <h2>自动执行检查</h2>
+            <span class="eyebrow">Paper Portfolio</span>
+            <h2>模拟盘状态</h2>
           </div>
           <span class="status-pill">{html.escape(model_portfolio.execution_price_status)}</span>
         </div>
@@ -4120,6 +4125,111 @@ def render_dashboard(
       line-height: 1.6;
     }}
     .analysis-note b {{ color: var(--blue); }}
+    .compact-copy {{ margin-bottom: 8px; font-size: 12px; }}
+    .dashboard-brief {{ padding: 14px; }}
+    .summary-rail {{
+      display: grid;
+      grid-template-columns: minmax(260px, 1.4fr) repeat(3, minmax(120px, 0.8fr));
+      gap: 10px;
+      align-items: stretch;
+    }}
+    .summary-lead {{
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(247, 250, 250, 0.98), rgba(237, 247, 245, 0.92));
+      padding: 12px;
+      min-width: 0;
+    }}
+    .summary-lead strong {{
+      display: block;
+      color: var(--ink);
+      font-size: 24px;
+      line-height: 1.1;
+      margin: 2px 0 6px;
+    }}
+    .summary-lead span:last-child {{
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }}
+    .summary-rail .card {{
+      padding: 11px 12px;
+      min-height: auto;
+    }}
+    .summary-rail .metric {{
+      font-size: 20px;
+    }}
+    .inline-metrics {{
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }}
+    .inline-metrics div, .timeline-grid div, .brief-item, .execution-strip {{
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-soft);
+      min-width: 0;
+    }}
+    .inline-metrics div {{
+      padding: 9px 10px;
+    }}
+    .inline-metrics span, .timeline-grid span {{
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }}
+    .inline-metrics b, .timeline-grid b {{
+      display: block;
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }}
+    .brief-grid {{
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }}
+    .brief-item {{
+      padding: 10px 11px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }}
+    .brief-item b {{
+      display: block;
+      color: var(--ink);
+      font-size: 12px;
+      margin-bottom: 4px;
+    }}
+    .timeline-grid {{
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+    }}
+    .timeline-grid div {{
+      padding: 10px;
+    }}
+    .execution-strip {{
+      display: grid;
+      grid-template-columns: 100px minmax(0, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+      padding: 11px 12px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }}
+    .execution-strip b {{
+      color: var(--ink);
+      font-size: 13px;
+    }}
     .section-toolbar {{
       display: flex;
       justify-content: space-between;
@@ -4225,6 +4335,10 @@ def render_dashboard(
       .app-shell {{ grid-template-columns: 72px minmax(0, 1fr); }}
       .execution-panel {{ position: static; height: auto; grid-column: 2; }}
       .hero-content, .stress-grid {{ grid-template-columns: 1fr; }}
+      .summary-rail {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
+      .summary-lead {{ grid-column: 1 / -1; }}
+      .brief-grid {{ grid-template-columns: 1fr; }}
+      .timeline-grid {{ grid-template-columns: repeat(3, minmax(0, 1fr)); }}
     }}
     @media (max-width: 760px) {{
       .app-shell {{ display: block; padding: 10px; }}
@@ -4233,7 +4347,23 @@ def render_dashboard(
       .nav-item {{ min-width: 64px; min-height: 48px; }}
       .topbar {{ display: block; }}
       .top-actions {{ margin-top: 10px; flex-wrap: wrap; }}
-      .asset-tabs, .grid, .metric-grid, .insight-strip, .risk-list, .table-grid {{ grid-template-columns: 1fr; }}
+      .grid, .metric-grid, .insight-strip, .risk-list, .table-grid, .brief-grid {{ grid-template-columns: 1fr; }}
+      .summary-rail {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
+      .summary-lead {{ grid-column: 1 / -1; }}
+      .asset-tabs {{
+        display: flex;
+        overflow-x: auto;
+        gap: 8px;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+      }}
+      .asset-chip {{
+        flex: 0 0 126px;
+        min-height: 48px;
+        padding: 8px 9px;
+      }}
+      .inline-metrics, .timeline-grid {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
+      .execution-strip {{ grid-template-columns: 1fr; }}
       .panel {{ max-width: 100%; overflow-x: auto; }}
       .table-grid, .table-grid > * {{ min-width: 0; }}
       .chart {{ padding: 6px; }}
@@ -4272,10 +4402,12 @@ def render_dashboard(
           <span>行情最新 {html.escape(dashboard_data_end)}</span>
           <span>估计窗口 {backtest.window if backtest else DEFAULT_REBALANCE_WINDOW} 日</span>
           <span>调仓间隔 {backtest.step if backtest else DEFAULT_REBALANCE_STEP} 日</span>
-          <button id="execution-check-button" class="action-button" type="button" aria-expanded="false" aria-controls="execution-check">执行检查</button>
+          <button id="execution-check-button" class="action-button" type="button" aria-expanded="false" aria-controls="execution-check">模拟盘状态</button>
         </div>
       </div>
 {execution_check_html}
+
+{update_summary_html}
       <div class="asset-tabs">{asset_tabs_html}</div>
 
       <section class="hero">
@@ -4297,8 +4429,6 @@ def render_dashboard(
           </div>
         </div>
       </section>
-
-{update_summary_html}
 
 {model_html}
 
@@ -4384,7 +4514,7 @@ def render_dashboard(
         button.addEventListener("click", () => {{
           const isOpen = panel.classList.toggle("is-open");
           button.setAttribute("aria-expanded", String(isOpen));
-          button.textContent = isOpen ? "收起执行检查" : "执行检查";
+          button.textContent = isOpen ? "收起模拟盘状态" : "模拟盘状态";
           if (isOpen) {{
             panel.scrollIntoView({{ behavior: "smooth", block: "start" }});
           }}

@@ -7,6 +7,8 @@
 - 已修复 Dashboard 自动落账与展示口径：`--execute-simulated-trades` 现在会在现金/持仓约束允许时同时落账买入和卖出；本轮补落账 `0056` 买入 `55` 股、`00919` 买入 `96` 股，`data/simulated_trades_2026-07-20.csv` 现为 `5` 笔已执行模拟成交。
 - 已修复首屏 `暂不可用` 问题：独立 TWSE 加权指数接口失败时，不再显示三张不可用卡片，改用模型盘持仓市值、未实现盈亏与已落账模拟成交作为 Summary fallback；正式页面中 `暂不可用`、`等待行情`、`待执行价`、`待复核` 均为 `0` 次。
 - 已把用户可见的“待复核调仓”口径改为“待自动落账 / 页面审计”，避免误导成需要 Tony 手动批准；当前 Dashboard 显示 `0 笔待自动落账 / 5 笔已落账`。
+- 已压缩 Dashboard 首页与第二屏信息架构：`今日状态` 上移到首屏，资产池在手机端改为横向 chip，摘要指标改成紧凑两列/并排网格；`调仓日历` 改为 6 项 timeline 与一条模拟盘执行摘要，不再用大空卡片承载少量文字。
+- 已把顶部按钮从“执行检查”改为“模拟盘状态”，折叠区标题从“自动执行检查”改为“模拟盘状态”；视觉 QA 证明手机与桌面均无 `执行复核`、`执行检查`、`待复核`、`暂不可用`、`等待行情`、`待执行价`。
 - 已同步 QA 基线和 iCloud Obsidian `台股量化基金.md` 最新研究摘要：`AI 供应链权重 30.90%`、`风险贡献 50.76%`、`风险-权重差 +19.87%`、`trade_status=settled_5`。
 - 已按 TWSE 2026 年休市资料确认 `2026-07-20` 为周一交易日，执行 `public-close + market-mode close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades`，本轮未读取 `.env`、`.shioaji.local.env`、API key 或 token，未调用券商下单。
 - 正式重建用 `--offline-cache --allow-stale-cache`，用时 `real 49.27`，Dashboard 更新日期、行情/回测序列最新日期与模型盘市值日均推进到 `2026-07-20`。
@@ -18,6 +20,7 @@
 
 - 已执行：`PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py scripts/validate_research_brief_metrics.py scripts/validate_research_brief_sync.py scripts/export_research_brief_markdown.py scripts/validate_legacy_trade_batch_status.py`，结果通过。
 - 已执行：`PYTHONPATH=$HOME/Library/Python/3.9/lib/python/site-packages python3 scripts/run_local_qa_checks.py --skip-dashboard-fixture`，结果输出 `local_qa_checks_ok`。
+- 已执行本地浏览器视觉 QA：手机 `390x844` 首屏命中 `今日状态`，摘要网格 `165px 165px` 两列、坏状态词 `0`、溢出 `0`；桌面 `1365x900` 展开 `模拟盘状态` 后坏状态词 `0`、溢出 `0`，`调仓日历` 高度约 `261px`。
 - Workspace 提交 `e99092a` 已推送 `origin/main`；第一次部署同步误提交删除全仓的 `471a921`，已立即用 `c6307de` revert 并推回，随后用 `rsync --delete` 从台股项目目录重发部署提交 `70f11f1`。
 - 公网验证通过：首页正文已命中 `2026-07-20` 与 `每日更新 Summary`，`/healthz=200`，`/version.json` 版本为 `0a77a2fe1dee003b8dea1cb8f5aa10108a813521385497e62d4f9f772cfaa46d`，首页 `ETag` 与 `X-Dashboard-Version` 同步为该版本。
 - 备注：`github-worldcup` 只是本机 SSH host alias 名称，不代表混用 World Cup 项目；后续发布说明应称为 `github-worldcup` GitHub host alias 或改名，避免项目语义混淆。
