@@ -3337,6 +3337,77 @@ def render_dashboard(
         f"继续观察是否走满 {backtest.step if backtest else DEFAULT_REBALANCE_STEP} 个共同交易日；当前预计下次回测调仓为 {estimated_next_rebalance_date}。",
         "短期重点看 AI 供应链风险贡献是否继续高于权重，并确认新的模拟盘调仓是否已经自动落账。",
     ]
+    portfolio_cost = current_market_value - current_unrealized_pnl
+    portfolio_pnl_pct = current_unrealized_pnl / portfolio_cost if portfolio_cost else 0.0
+    kpi_rows = [
+        (
+            "模型盘绩效",
+            format_percent(portfolio_pnl_pct, signed=True),
+            "累计未实现损益率",
+            f"{format_twd(current_unrealized_pnl)} / 成本 {format_twd(portfolio_cost)}",
+        ),
+        (
+            "滚动回测净值",
+            f"{backtest.shrink_curve[-1]:.4f}" if backtest and len(backtest.shrink_curve) else "无资料",
+            "收缩协方差",
+            f"普通 {backtest.sample_curve[-1]:.4f}" if backtest and len(backtest.sample_curve) else "等待足够样本",
+        ),
+        (
+            "年化报酬",
+            format_percent(backtest.shrink_metrics.annual_return, signed=True) if backtest else "无资料",
+            "收缩协方差",
+            f"普通 {format_percent(backtest.sample_metrics.annual_return, signed=True)}" if backtest else "等待足够样本",
+        ),
+        (
+            "最大回撤",
+            format_percent(backtest.shrink_metrics.max_drawdown) if backtest else "无资料",
+            "收缩协方差",
+            f"普通 {format_percent(backtest.sample_metrics.max_drawdown)}" if backtest else "等待足够样本",
+        ),
+        (
+            "年化波动",
+            format_percent(backtest.shrink_metrics.annual_volatility) if backtest else "无资料",
+            "收缩协方差",
+            f"普通 {format_percent(backtest.sample_metrics.annual_volatility)}" if backtest else "等待足够样本",
+        ),
+        (
+            "平均换手",
+            format_percent(backtest.shrink_metrics.average_turnover) if backtest else "无资料",
+            f"{backtest.step if backtest else DEFAULT_REBALANCE_STEP} 日调仓节奏",
+            f"普通 {format_percent(backtest.sample_metrics.average_turnover)}" if backtest else "等待足够样本",
+        ),
+        (
+            "AI 风险差",
+            format_percent(ai_risk_gap, signed=True),
+            "风险贡献 - 权重",
+            f"AI 权重 {format_percent(float(ai_group['weight']))} / 风险 {format_percent(float(ai_group['risk']))}",
+        ),
+        (
+            "模拟盘执行",
+            f"{execution_trade_count} 笔",
+            f"买 {execution_buy_count} / 卖 {execution_sell_count}",
+            f"待自动落账 {len(actionable_signals)} 笔",
+        ),
+    ]
+    kpi_rows_html = "\n".join(
+        (
+            f"<tr><td>{html.escape(label)}</td><td><b>{html.escape(value)}</b></td>"
+            f"<td>{html.escape(basis)}</td><td>{html.escape(compare)}</td></tr>"
+        )
+        for label, value, basis, compare in kpi_rows
+    )
+    daily_kpi_summary_html = f"""
+        <div class="daily-kpi">
+          <div class="daily-kpi-heading">
+            <span class="eyebrow-label">Portfolio KPI</span>
+            <b>量化模型基金组合绩效与 KPI 对比</b>
+          </div>
+          <table class="kpi-table">
+            <thead><tr><th>KPI</th><th>今日读数</th><th>口径</th><th>比较 / 说明</th></tr></thead>
+            <tbody>{kpi_rows_html}</tbody>
+          </table>
+        </div>
+"""
     update_summary_html = f"""
       <section id="update-summary" class="section panel dashboard-brief">
         <div class="section-heading">
@@ -3360,6 +3431,7 @@ def render_dashboard(
           <div><span>已落账模拟成交</span><b>{execution_trade_count} 笔</b></div>
           <div><span>待自动落账</span><b>{len(actionable_signals)} 笔</b></div>
         </div>
+        {daily_kpi_summary_html}
         <div class="brief-grid">
           <div class="brief-item"><b>已完成</b><span>{html.escape(update_actions[1])}</span></div>
           <div class="brief-item"><b>调仓状态</b><span>{html.escape(trade_reason_summary)}</span></div>
@@ -4206,6 +4278,39 @@ def render_dashboard(
       color: var(--ink);
       font-size: 12px;
       margin-bottom: 4px;
+    }}
+    .daily-kpi {{
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-soft);
+      overflow: hidden;
+    }}
+    .daily-kpi-heading {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+    }}
+    .daily-kpi-heading b {{
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.3;
+      text-align: right;
+    }}
+    .kpi-table {{
+      margin: 0;
+      background: transparent;
+    }}
+    .kpi-table th, .kpi-table td {{
+      padding: 8px 10px;
+      font-size: 12px;
+    }}
+    .kpi-table td b {{
+      color: var(--ink);
+      font-size: 13px;
     }}
     .timeline-grid {{
       display: grid;

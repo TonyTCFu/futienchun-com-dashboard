@@ -1,5 +1,40 @@
 # Loop Engineering Progress
 
+## 2026-07-26 立即补跑至 2026-07-24 并准备公网发布
+
+### Actions
+
+- 已根据用户截图确认本地与公网可见 Dashboard 停在 `2026-07-20`；`2026-07-26` 为周日，因此本轮目标是补到最近可用交易日 `2026-07-24`，不是把行情日期写成周日。
+- 已用 TWSE 官方公开端点确认 `2026-07-24` 有 `0050` 月资料；本轮继续保持只读行情，不读取 `.env`、`.shioaji.local.env`、API key、token 或凭证文件，未调用券商下单。
+- 已执行正式 public-close 补跑：`--end 2026-07 --market-source public-close --market-mode close --model-method multi-factor-shrink --ai-tilt moderate --execute-simulated-trades --offline-cache --allow-stale-cache`，用时 `real 24.69`。
+- Dashboard 已推进为：今日 Dashboard 更新日期 `2026-07-26`，行情/回测序列最新日期 `2026-07-24`，模型盘市值日 `2026-07-24`。
+- 已生成 `data/model_portfolio_market_2026-07-24.csv` 与 summary：`quote_count=13`、`missing_count=0`、当前持仓市值 `NT$259,605.29`、未实现盈亏 `NT$-5,193.50`、未实现盈亏率 `-1.9613%`。
+- 本地模拟盘自动落账 `2026-07-24` 模拟卖出 `2` 笔：`006208` 卖出 `18` 股、`00881` 卖出 `66` 股；刷新 `data/simulated_trades_2026-07-24.csv`、`data/simulated_positions_2026-07-24.csv` 与 `data/simulated_positions_latest.csv`。
+- Dashboard “每日更新 Summary” 已包含量化模型基金组合绩效与 KPI 对比区；策略监控 `signal-pill sell=0`、待自动落账 `0` 笔，页面说明文字中仍保留“建议卖出”规则解释。
+- 已同步 iCloud Obsidian `台股量化基金.md` 最新研究摘要，并更新 `scripts/validate_research_brief_metrics.py` 的 QA 基线为 `settled_2`。
+
+### Verification Log
+
+- 已执行：`PYTHONPYCACHEPREFIX=/tmp/tw_quant_pycache python3 -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py scripts/validate_research_brief_metrics.py scripts/validate_research_brief_sync.py scripts/export_research_brief_markdown.py scripts/validate_legacy_trade_batch_status.py`，结果通过。
+- 已执行：`python3 scripts/run_local_qa_checks.py --skip-dashboard-fixture`，结果输出 `local_qa_checks_ok`。
+- 已执行页面文本检查：`行情/回测序列最新日期：2026-07-24` 命中，`量化模型基金组合绩效与 KPI 对比` 命中，`signal-pill sell=0`。
+- 待执行：workspace `origin` 提交推送、部署仓库同步推送、公网 `/healthz`、`/version.json`、首页 `ETag` / `X-Dashboard-Version` 验收。
+
+## 2026-07-26 Dashboard Summary 与自动化投递规则
+
+### Actions
+
+- 已按用户纠正再次收紧自动化投递规则：每日收盘更新与漏跑补偿在正常成功、非交易日跳过或复核通过时，不再向项目对话框发送完整摘要；只有错误、阻塞、公网旧版、发布失败、验证失败或需要用户决策时才发消息。
+- 已把 Dashboard “每日更新 Summary” 扩展为模型基金组合绩效与 KPI 对比区：每日随重建显示模型盘未实现损益率、滚动回测净值、年化报酬、最大回撤、年化波动、平均换手、AI 风险差与模拟盘执行状态，并和普通协方差或策略基线对照。
+- 已同步 `MEMORY.md` 与 `README.md`，把 Dashboard 作为正常摘要唯一用户可见报告面。
+
+### Verification Log
+
+- 已执行：`PYTHONPYCACHEPREFIX=/tmp/tw_quant_pycache python3 -m py_compile src/risk_dashboard.py`，结果通过。
+- 已执行：短区间 `/tmp/tw_quant_kpi_summary_smoke.html` 冒烟生成，结果命中 `量化模型基金组合绩效与 KPI 对比`、`模型盘绩效`、`滚动回测净值`、`年化报酬` 与 `AI 风险差`。
+- 已执行：正式口径本地 QA `python3 scripts/run_local_qa_checks.py --skip-dashboard-fixture`，结果输出 `local_qa_checks_ok`。
+- 备注：今天是周日，未执行正式交易日日更、未运行 `--execute-simulated-trades`、未提交或推送公网；本轮只改生成逻辑与规则文档。
+
 ## 2026-07-20 每日收盘自动化
 
 ### Actions

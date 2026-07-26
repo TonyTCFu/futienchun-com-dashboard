@@ -1,0 +1,3 @@
+﻿trade_id,trade_date,symbol,name,action,shares,trade_price,gross_amount,fee,tax,net_amount,realized_cost,realized_pnl,remaining_shares,reason,status
+paper-20260724-006208-sell-01-84cead71dc,2026-07-24,006208,富邦台50,sell,18,233.0000,4194.00,6.00,4.00,4184.00,4491.99,-307.99,51,模拟盘连续收盘亏损超过约 6%，已连续观察至少 2 天，建议先减码 25%。,executed
+paper-20260724-00881-sell-01-46f963b829,2026-07-24,00881,國泰台灣5G+,sell,66,51.1500,3375.90,5.00,3.00,3367.90,3721.10,-353.20,195,模拟盘连续收盘亏损超过约 6%，已连续观察至少 2 天，建议先减码 25%。,executed
