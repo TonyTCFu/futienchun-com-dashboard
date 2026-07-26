@@ -1,5 +1,13 @@
 # Loop Engineering Findings
 
+## 2026-07-26 立即补跑至 2026-07-24
+
+- 用户截图显示公网 Dashboard 仍停在 `2026-07-20`；`2026-07-26` 为周日，因此正确补跑目标是最近可用交易日 `2026-07-24`。
+- 已按交易日日更口径执行 `public-close + close + multi-factor-shrink + ai_tilt moderate + --execute-simulated-trades`，本轮未读取敏感配置，未调用券商下单。
+- Dashboard 已推进到更新日期 `2026-07-26`、行情/回测最新日 `2026-07-24`、模型盘市值日 `2026-07-24`；市值档 `quote_count=13`、`missing_count=0`，持仓市值 `NT$259,605.29`，未实现盈亏 `NT$-5,193.50`。
+- 本地模拟盘自动落账 `2` 笔卖出：`006208` 卖出 `18` 股、`00881` 卖出 `66` 股；策略监控 `signal-pill sell=0`，待自动落账 `0` 笔。
+- Workspace 提交 `c2c03e6` 与部署仓库提交 `aa62023` 已推送；公网正文、`/healthz`、`/version.json`、首页 `X-Dashboard-Version` 与 `ETag` 已验收，新缓存版本为 `e9ff3ce42c50092935e5715a6049e1cadfbc7020b5b26bb66880ebcb76bcdc47`。
+
 ## 2026-07-26 自动化投递与每日 KPI Summary
 
 - 用户再次明确：每日收盘更新与漏跑补偿的正常结果不要发送到项目对话框；对话框只承载异常、失败、阻塞、公网旧版或需要用户决策的事项。

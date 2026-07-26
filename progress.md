@@ -1,6 +1,6 @@
 # Loop Engineering Progress
 
-## 2026-07-26 立即补跑至 2026-07-24 并准备公网发布
+## 2026-07-26 立即补跑至 2026-07-24 并完成公网发布
 
 ### Actions
 
@@ -12,13 +12,15 @@
 - 本地模拟盘自动落账 `2026-07-24` 模拟卖出 `2` 笔：`006208` 卖出 `18` 股、`00881` 卖出 `66` 股；刷新 `data/simulated_trades_2026-07-24.csv`、`data/simulated_positions_2026-07-24.csv` 与 `data/simulated_positions_latest.csv`。
 - Dashboard “每日更新 Summary” 已包含量化模型基金组合绩效与 KPI 对比区；策略监控 `signal-pill sell=0`、待自动落账 `0` 笔，页面说明文字中仍保留“建议卖出”规则解释。
 - 已同步 iCloud Obsidian `台股量化基金.md` 最新研究摘要，并更新 `scripts/validate_research_brief_metrics.py` 的 QA 基线为 `settled_2`。
+- Workspace 提交 `c2c03e6` 已推送 `origin/main`；部署仓库提交 `aa62023` 已推送 `futienchun-com-dashboard/main`。
+- 公网 Dashboard 已切到新版本：正文命中 `今日 Dashboard 更新日期：2026-07-26` 与 `行情/回测序列最新日期：2026-07-24`，`/healthz=ok`，`/version.json` 版本为 `e9ff3ce42c50092935e5715a6049e1cadfbc7020b5b26bb66880ebcb76bcdc47`，首页 `X-Dashboard-Version` 与 `ETag` 同步为该 hash。
 
 ### Verification Log
 
 - 已执行：`PYTHONPYCACHEPREFIX=/tmp/tw_quant_pycache python3 -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py scripts/validate_research_brief_metrics.py scripts/validate_research_brief_sync.py scripts/export_research_brief_markdown.py scripts/validate_legacy_trade_batch_status.py`，结果通过。
 - 已执行：`python3 scripts/run_local_qa_checks.py --skip-dashboard-fixture`，结果输出 `local_qa_checks_ok`。
 - 已执行页面文本检查：`行情/回测序列最新日期：2026-07-24` 命中，`量化模型基金组合绩效与 KPI 对比` 命中，`signal-pill sell=0`。
-- 待执行：workspace `origin` 提交推送、部署仓库同步推送、公网 `/healthz`、`/version.json`、首页 `ETag` / `X-Dashboard-Version` 验收。
+- 已执行公网验收：`/healthz=ok`；`/version.json`、首页 `X-Dashboard-Version` 与 weak `ETag` 均为 `e9ff3ce42c50092935e5715a6049e1cadfbc7020b5b26bb66880ebcb76bcdc47`；公网正文命中 `每日更新 Summary` 与 `量化模型基金组合绩效与 KPI 对比`。
 
 ## 2026-07-26 Dashboard Summary 与自动化投递规则
 
