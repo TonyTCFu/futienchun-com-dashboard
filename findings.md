@@ -1,5 +1,16 @@
 # Loop Engineering Findings
 
+## 2026-07-27 漏更根因与云端自动化
+
+- 2026-07-27 为台湾股市交易日；TWSE 官方 2026 年市场开休市资料中没有 `2026-07-27` 休市记录，因此不应跳过日更。
+- 补跑前本地与公网均停在 Dashboard 更新日期 `2026-07-26`、行情/回测最新日 `2026-07-24`；公网 health/version/header 均正常但为旧 hash，说明问题不是浏览器缓存，而是 7/27 内容没有生成并发布。
+- 直接根因：当前 Codex automations `dashboard` 与 `dashboard-4` 仍是本机 local cron，不是云端托管任务；本机执行层空跑、断线、睡眠、未唤醒或 app 状态异常都会造成漏更。Render 服务内的线程式 rebuild loop 也不是可靠任务队列，不应当作唯一日更机制。
+- 2026-07-27 已按正式口径补跑成功：Dashboard 更新日期、行情/回测最新日和模型盘市值日均推进到 `2026-07-27`；生成 `data/model_portfolio_market_2026-07-27.csv`，`quote_count=13`、`missing_count=0`。
+- 本地模拟盘自动落账 `3` 笔：`006208` 卖出 `13` 股、`00881` 卖出 `49` 股、`2330` 买入 `1` 股；Dashboard 显示待自动落账 `0` 笔。
+- QA 基线同步到 7/27 口径：`AI 供应链权重 30.53%`、`风险贡献 50.44%`、`风险-权重差 +19.91%`、`trade_status=settled_2`；本地 QA `--skip-dashboard-fixture` 通过。
+- 已新增 `.github/workflows/tw-dashboard-daily.yml` 作为真正云端日更主链路：部署仓库每天台湾收盘后多次运行，先以 TWSE 官方交易日历判定是否开市，交易日才重建、验证、commit/push，进而触发 Render 自动部署。
+- 云端链路的边界：GitHub Actions 可以稳定更新公网部署仓库和 Render Dashboard，但不能直接同步 iCloud Workspace 与 Obsidian 本地笔记；这些仍由本机补偿 automation 或人工维护同步。
+
 ## 2026-07-26 立即补跑至 2026-07-24
 
 - 用户截图显示公网 Dashboard 仍停在 `2026-07-20`；`2026-07-26` 为周日，因此正确补跑目标是最近可用交易日 `2026-07-24`。

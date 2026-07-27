@@ -1,0 +1,4 @@
+﻿trade_id,trade_date,symbol,name,action,shares,trade_price,gross_amount,fee,tax,net_amount,realized_cost,realized_pnl,remaining_shares,reason,status
+paper-20260727-006208-sell-01-898f0bff84,2026-07-27,006208,富邦台50,sell,13,232.7500,3025.75,4.00,3.00,3018.75,3244.21,-225.46,38,模拟盘连续收盘亏损超过约 6%，已连续观察至少 2 天，建议先减码 25%。,executed
+paper-20260727-00881-sell-01-3fc664396e,2026-07-27,00881,國泰台灣5G+,sell,49,51.0500,2501.45,4.00,3.00,2494.45,2762.63,-268.18,146,模拟盘连续收盘亏损超过约 6%，已连续观察至少 2 天，建议先减码 25%。,executed
+paper-20260727-2330-buy-01-e76fdf8e47,2026-07-27,2330,台積電,buy,1,2350.0000,2350.00,3.00,0.00,-2353.00,,,10,价格较建仓成本回落约 3%，但仍在 60 日趋势上方、RSI 未过热，且量能未明显萎缩，可考虑小幅加码。,executed

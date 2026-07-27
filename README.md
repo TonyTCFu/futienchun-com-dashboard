@@ -220,6 +220,12 @@ python src/risk_dashboard.py --start 2024-01 --end 2026-06 --offline-cache --upd
 python src/risk_dashboard.py --offline-cache --model-portfolio --model-method multi-factor-shrink --ai-tilt moderate --market-source public-close --market-mode close
 ```
 
+### 云端每日收盘自动化
+
+部署仓库包含 GitHub Actions 工作流 `.github/workflows/tw-dashboard-daily.yml`，用于替代只依赖本机 Codex cron 的日更主链路。工作流在台湾收盘后多次运行，先读取 TWSE 官方开休市资料；周末或官方休市日跳过，交易日才按公开收盘价路径重建 Dashboard、执行本地模拟盘 CSV 落账、验证页面日期和待自动落账状态，并 commit/push 触发 Render 自动部署。
+
+本机 Codex automation `dashboard` / `dashboard-4` 仍保留为审计和补偿机制，但不应再作为唯一生产调度器。它们会同步 iCloud Workspace、Obsidian 摘要和 automation memory；GitHub Actions 负责让公网 Dashboard 在云端自动更新。
+
 可调整初始虚拟资金、建仓比例和输出位置：
 
 ```bash

@@ -1,0 +1,145 @@
+name: Taiwan Dashboard Daily Close
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "45 7 * * 1-5"
+    - cron: "45 8 * * 1-5"
+    - cron: "45 9 * * 1-5"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tw-dashboard-daily-close
+  cancel-in-progress: false
+
+jobs:
+  update-dashboard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      TZ: Asia/Taipei
+      PYTHONPYCACHEPREFIX: /tmp/tw_quant_pycache
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache market data
+        uses: actions/cache@v4
+        with:
+          path: |
+            data/cache
+            data/matrix_cache
+          key: tw-dashboard-market-cache-${{ runner.os }}-${{ hashFiles('config/universe_tw.csv') }}
+          restore-keys: |
+            tw-dashboard-market-cache-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Check Taiwan trading day
+        id: trading-day
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          from __future__ import annotations
+
+          import json
+          import urllib.request
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+
+          today = datetime.now(ZoneInfo("Asia/Taipei")).date()
+          print(f"date={today.isoformat()}")
+          if today.weekday() >= 5:
+              print("is_open=false")
+              print("reason=weekend")
+              raise SystemExit
+
+          url = (
+              "https://www.twse.com.tw/rwd/zh/holidaySchedule/holidaySchedule"
+              f"?response=json&queryYear={today.year}"
+          )
+          with urllib.request.urlopen(url, timeout=30) as response:
+              payload = json.load(response)
+
+          holiday_rows = [row for row in payload.get("data", []) if row and row[0] == today.isoformat()]
+          is_holiday = any("開始交易" not in " ".join(row[1:]) for row in holiday_rows)
+          print(f"is_open={'false' if is_holiday else 'true'}")
+          print(f"reason={'twse_holiday' if is_holiday else 'twse_open'}")
+          PY
+
+      - name: Compile scripts
+        if: steps.trading-day.outputs.is_open == 'true'
+        run: |
+          python -m py_compile \
+            src/risk_dashboard.py \
+            scripts/serve_dashboard.py \
+            scripts/export_research_brief_markdown.py \
+            scripts/validate_legacy_trade_batch_status.py
+
+      - name: Rebuild dashboard
+        if: steps.trading-day.outputs.is_open == 'true'
+        run: |
+          python src/risk_dashboard.py \
+            --start 2024-01 \
+            --end "$(date +%Y-%m)" \
+            --offline-cache \
+            --allow-stale-cache \
+            --model-portfolio \
+            --model-build-date 2026-06-03 \
+            --model-invest-ratio 0.75 \
+            --model-method multi-factor-shrink \
+            --ai-tilt moderate \
+            --market-source public-close \
+            --market-mode close \
+            --execute-simulated-trades
+
+      - name: Verify generated dashboard
+        if: steps.trading-day.outputs.is_open == 'true'
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import re
+          from pathlib import Path
+
+          html = Path("dashboard/index.html").read_text(encoding="utf-8")
+          today = __import__("datetime").datetime.now(
+              __import__("zoneinfo").ZoneInfo("Asia/Taipei")
+          ).date().isoformat()
+
+          required = [
+              f"今日 Dashboard 更新日期：{today}",
+              f"行情/回测序列最新日期：{today}",
+              "待自动落账</span><b>0 笔</b>",
+              "量化模型基金组合绩效与 KPI 对比",
+          ]
+          missing = [fragment for fragment in required if fragment not in html]
+          if missing:
+              raise SystemExit("Dashboard verification failed: " + " | ".join(missing))
+          if re.search(r'class="signal-pill sell"', html):
+              raise SystemExit("Dashboard verification failed: sell signal pill remains")
+          print("dashboard_cloud_verify_ok")
+          PY
+
+      - name: Commit generated dashboard
+        if: steps.trading-day.outputs.is_open == 'true'
+        run: |
+          if git diff --quiet -- dashboard data scripts; then
+            echo "No dashboard changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dashboard data scripts
+          git commit -m "Update Taiwan dashboard daily close"
+          git push

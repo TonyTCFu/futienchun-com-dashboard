@@ -1,5 +1,40 @@
 # Loop Engineering Progress
 
+## 2026-07-27 收盘补跑与云端自动化防线
+
+### Actions
+
+- 已按 TWSE 官方 2026 年市场开休市资料判定 `2026-07-27` 为周一且不在休市清单内，按交易日强制更新处理；本轮未读取 `.env`、`.shioaji.local.env`、API key、token 或凭证文件，未调用券商下单、改单、撤单或账户交易接口。
+- 已确认本地与公网在补跑前仍停在 Dashboard 更新日期 `2026-07-26`、行情/回测最新日 `2026-07-24`；公网 `/healthz=ok` 且 `/version.json`、首页 `X-Dashboard-Version` 与 `ETag` 均为旧版本 `e9ff3ce42c50092935e5715a6049e1cadfbc7020b5b26bb66880ebcb76bcdc47`，说明不是浏览器缓存，而是 7/27 交易日内容没有生成/发布。
+- 已执行正式 public-close 补跑：`--start 2024-01 --end 2026-07 --offline-cache --allow-stale-cache --model-portfolio --model-build-date 2026-06-03 --model-invest-ratio 0.75 --model-method multi-factor-shrink --ai-tilt moderate --market-source public-close --market-mode close --execute-simulated-trades`，用时 `real 26.23`。
+- Dashboard 已推进为：今日 Dashboard 更新日期 `2026-07-27`，行情/回测序列最新日期 `2026-07-27`，模型盘市值日 `2026-07-27`。
+- 已生成 `data/model_portfolio_market_2026-07-27.csv` 与 summary：`quote_count=13`、`missing_count=0`、当前持仓市值 `NT$252,795.73`、未实现盈亏 `NT$-3,789.97`、未实现盈亏率 `-1.4771%`。
+- 本地模拟盘自动落账 `2026-07-27` 模拟成交 `3` 笔：`006208` 卖出 `13` 股、`00881` 卖出 `49` 股、`2330` 买入 `1` 股；Dashboard 显示已落账模拟成交 `3` 笔、待自动落账 `0` 笔。
+- 已同步研究摘要 QA 基线与 iCloud Obsidian `台股量化基金.md`：`AI 供应链权重 30.53%`、`风险贡献 50.44%`、`风险-权重差 +19.91%`、`trade_status=settled_2`。
+- 已新增云端日更防线 `.github/workflows/tw-dashboard-daily.yml`：在部署仓库根目录运行 GitHub Actions，工作日台湾收盘后多次检查 TWSE 官方交易日历，交易日才重建 Dashboard、验证今日日期/行情日期/待自动落账/卖出残留，并自动提交触发 Render；周末或官方休市日跳过。
+- 已修正 Render 进程内 rebuild 口径：`render.yaml` 与 `scripts/serve_dashboard.py` 的默认命令补上 `--start 2024-01 --offline-cache --allow-stale-cache --model-invest-ratio 0.75`，不写死 `--end`，避免跨月再次停在旧月份。
+- 根因结论：当前 `dashboard`/`dashboard-4` 仍是本机 Codex cron，不是可靠云端托管；只要本机 Codex 执行层空跑、断线、睡眠或未唤醒，就可能漏跑。Render 进程内 loop 也不是持久任务队列；可靠方案应以 GitHub Actions / Render Cron 这类云端 scheduler 作为主链路，本机 Codex 只做人工补偿与审计。
+
+### Verification Log
+
+- 已执行：`PYTHONPYCACHEPREFIX=/tmp/tw_quant_pycache python3 -m py_compile src/risk_dashboard.py scripts/serve_dashboard.py scripts/run_local_qa_checks.py scripts/validate_research_brief_metrics.py scripts/validate_research_brief_sync.py scripts/export_research_brief_markdown.py scripts/validate_legacy_trade_batch_status.py`，结果通过。
+- 已执行：`python3 scripts/run_local_qa_checks.py --skip-dashboard-fixture`，结果输出 `local_qa_checks_ok`。
+- 已执行本地页面解析：`今日 Dashboard 更新日期=2026-07-27`、`行情/回测序列最新日期=2026-07-27`、`已落账模拟成交=3 笔`、`待自动落账=0 笔`。
+- 待完成：提交 Workspace、同步部署仓库、推送并验证公网正文、`/healthz`、`/version.json` 与首页 `ETag` / `X-Dashboard-Version`。
+
+## 2026-07-26 开盘日强制更新规则
+
+### Actions
+
+- 已按用户要求把日更规则收紧为：台湾股市只要有开盘，当天 Dashboard 就必须更新；只有周六、周日或交易所正式休市日才跳过。
+- 已更新 Codex automation `dashboard`：每日 13:45 收盘后执行，开盘日必须完成重建、提交、推送公网和缓存版本验收。
+- 已更新 Codex automation `dashboard-4`：工作日 16:30 复核主日更；若开盘日未落地或公网仍旧，必须立即按正式日更流程补偿。
+- 已保持通知边界：正常成功/复核通过/非交易日跳过不向项目对话框发送完整摘要，只有异常、失败、阻塞、公网旧版或需要 Tony 决策时通知。
+
+### Verification Log
+
+- 已通过 Codex automation update 工具确认 `dashboard` 与 `dashboard-4` 均已更新并保持 `ACTIVE`。
+
 ## 2026-07-26 立即补跑至 2026-07-24 并完成公网发布
 
 ### Actions
