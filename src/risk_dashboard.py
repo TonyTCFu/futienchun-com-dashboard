@@ -3303,6 +3303,10 @@ def render_dashboard(
     )
     current_market_value = sum((position.current_market_value or 0.0) for position in model_portfolio.positions) if model_portfolio else 0.0
     current_unrealized_pnl = sum((position.unrealized_pnl or 0.0) for position in model_portfolio.positions) if model_portfolio else 0.0
+    current_cost_basis = current_market_value - current_unrealized_pnl
+    current_cash = max((model_portfolio.initial_cash if model_portfolio else 0.0) - current_cost_basis, 0.0)
+    total_fund_value = current_market_value + current_cash
+    total_fund_pnl = total_fund_value - (model_portfolio.initial_cash if model_portfolio else 0.0)
     taiex_snapshot = fetch_taiex_snapshot(dashboard_generated_date)
     if taiex_snapshot:
         taiex_change_class = "positive" if taiex_snapshot.change_points >= 0 else "negative"
@@ -3413,7 +3417,7 @@ def render_dashboard(
         <div class="section-heading">
           <div>
             <span class="eyebrow">Daily Update Summary</span>
-            <h2>今日状态</h2>
+          <h2>基金收盘后状态</h2>
           </div>
           <span class="status-pill">收盘更新 / 模拟盘已落账</span>
         </div>
@@ -3425,16 +3429,25 @@ def render_dashboard(
           </div>
           {taiex_cards}
         </div>
+        <div class="portfolio-overview">
+          <div class="portfolio-overview-title"><span class="eyebrow-label">Paper Fund Snapshot</span><b>当前模拟基金资产</b></div>
+          <div class="portfolio-overview-grid">
+            <div class="card"><div class="metric">{format_twd(current_market_value)}</div><p class="metric-label">实际持仓市值</p></div>
+            <div class="card"><div class="metric">{format_twd(current_cash)}</div><p class="metric-label">模拟盘现金</p></div>
+            <div class="card"><div class="metric">{format_twd(total_fund_value)}</div><p class="metric-label">基金总资产</p></div>
+            <div class="card"><div class="metric {'positive' if total_fund_pnl >= 0 else 'negative'}">{format_twd(total_fund_pnl)}</div><p class="metric-label">累计盈余 / 亏损</p></div>
+          </div>
+        </div>
         <div class="inline-metrics">
           <div><span>模型盘市值日</span><b>{html.escape(portfolio_market_date)}</b></div>
-          <div><span>行情口径</span><b>{html.escape(market_mode_text)}</b></div>
           <div><span>已落账模拟成交</span><b>{execution_trade_count} 笔</b></div>
           <div><span>待自动落账</span><b>{len(actionable_signals)} 笔</b></div>
+          <div><span>行情 / 回测最新日</span><b>{html.escape(dashboard_data_end)}</b></div>
         </div>
         {daily_kpi_summary_html}
         <div class="brief-grid">
           <div class="brief-item"><b>已完成</b><span>{html.escape(update_actions[1])}</span></div>
-          <div class="brief-item"><b>调仓状态</b><span>{html.escape(trade_reason_summary)}</span></div>
+          <div class="brief-item"><b>今日策略原因</b><span>{html.escape(trade_reason_summary)} {html.escape(trade_reason_boundary)}</span></div>
           <div class="brief-item"><b>下一步</b><span>{html.escape(next_steps[2])}</span></div>
         </div>
         <p class="footer-note">只读行情与本地 paper portfolio；不代表实盘委托或投资建议。</p>
@@ -3499,7 +3512,7 @@ def render_dashboard(
         <div class="section-heading">
           <div>
             <span class="eyebrow">Decision Brief</span>
-            <h2>本轮风险归因与调仓摘要</h2>
+            <h2>今日交易策略形成原因</h2>
           </div>
           <span class="status-pill">{len(actionable_signals)} 笔待自动落账</span>
         </div>
@@ -3731,25 +3744,18 @@ def render_dashboard(
             else "等待收盘价入账"
         )
         model_html = f"""
-    <section class="section panel">
+    <section id="model" class="section panel">
       <h2>今日持仓与收盘盈亏</h2>
       <p>本区块只生成虚拟持仓与行情更新，不会连接券商交易端、不做实盘下单。模型盘建仓日为 {html.escape(model_portfolio.build_date)}；方法为{method_label}，实际使用{lookback_label}回撤资料。{html.escape(history_note)}</p>
       <div class="metric-grid backtest-grid">
-        <div class="card"><div class="metric">{format_twd(model_portfolio.initial_cash)}</div><p class="metric-label">初始虚拟资金</p></div>
-        <div class="card"><div class="metric">{format_percent(model_portfolio.invest_ratio)}</div><p class="metric-label">目标建仓比例</p></div>
-        <div class="card"><div class="metric">{format_twd(model_portfolio.cash_reserve)}</div><p class="metric-label">策略现金池</p></div>
-        <div class="card"><div class="metric">{html.escape(update_status_label)}</div><p class="metric-label">更新状态</p></div>
-        <div class="card"><div class="metric">{html.escape(market_mode_label)}</div><p class="metric-label">行情口径</p></div>
-        <div class="card"><div class="metric">{html.escape(market_time_label)}</div><p class="metric-label">快照时间</p></div>
-        <div class="card"><div class="metric hero-stat">{format_twd(target_total)}</div><p class="metric-label">目标配置金额</p></div>
-        <div class="card"><div class="metric">{format_twd(current_market_total)}</div><p class="metric-label">当前持仓市值</p></div>
+        <div class="card"><div class="metric">{format_twd(current_cash)}</div><p class="metric-label">模拟盘现金</p></div>
+        <div class="card"><div class="metric">{format_twd(current_market_total)}</div><p class="metric-label">实际持仓市值</p></div>
+        <div class="card"><div class="metric">{format_twd(current_market_total + current_cash)}</div><p class="metric-label">基金总资产</p></div>
         <div class="card"><div class="metric {'positive' if current_pnl_total >= 0 else 'negative'}">{format_twd(current_pnl_total)}</div><p class="metric-label">未实现盈亏</p></div>
         <div class="card"><div class="metric {'positive' if current_pnl_total >= 0 else 'negative'}">{format_percent(current_pnl_pct, signed=True)}</div><p class="metric-label">未实现盈亏率</p></div>
-        <div class="card"><div class="metric">{execution_status}</div><p class="metric-label">虚拟执行价状态</p></div>
-        <div class="card"><div class="metric">{model_portfolio.execution_date}</div><p class="metric-label">计划建仓日</p></div>
-        <div class="card"><div class="metric">{format_twd(model_portfolio.remaining_cash)}</div><p class="metric-label">买进后剩余现金</p></div>
-        <div class="card"><div class="metric">{format_twd(total_commission)}</div><p class="metric-label">买进手续费估算</p></div>
-        <div class="card"><div class="metric">{format_twd(total_future_sell_tax)}</div><p class="metric-label">未来卖出税估算</p></div>
+        <div class="card"><div class="metric {'positive' if total_fund_pnl >= 0 else 'negative'}">{format_twd(total_fund_pnl)}</div><p class="metric-label">累计盈余 / 亏损</p></div>
+        <div class="card"><div class="metric">{execution_trade_count} 笔</div><p class="metric-label">本日模拟成交</p></div>
+        <div class="card"><div class="metric">{html.escape(market_time_label)}</div><p class="metric-label">收盘行情时间</p></div>
       </div>
       <div class="analysis-note"><b>持仓状态解释：</b>当前持仓市值与未实现盈亏来自本地模拟持仓和市值档，不是券商账户资料。持仓表说明“现在模拟盘长什么样”，下方建议单说明“规则是否触发下一步动作”；两者不是同一件事。</div>
       <table class="metric-table">
@@ -3795,7 +3801,7 @@ def render_dashboard(
           <p>{execution_hint}</p>
           <div class="split-row"><span>虚拟资金</span><b>{format_twd(model_portfolio.initial_cash)}</b></div>
           <div class="split-row"><span>建仓比例</span><b>{format_percent(model_portfolio.invest_ratio)}</b></div>
-          <div class="split-row"><span>策略现金池</span><b>{format_twd(model_portfolio.cash_reserve)}</b></div>
+          <div class="split-row"><span>模拟盘现金</span><b>{format_twd(current_cash)}</b></div>
         </div>
         <div class="side-card">
           <p class="eyebrow-label">目前更新情况</p>
@@ -3838,6 +3844,8 @@ def render_dashboard(
         </div>
       </aside>
 """
+    # The primary view already contains the current portfolio and execution audit; avoid duplicating the old build sidebar.
+    order_sidebar_html = ""
     etf_count = sum(1 for asset in assets if asset.asset_type.upper() == "ETF")
     stock_count = len(assets) - etf_count
     execution_check_html = ""
@@ -3932,7 +3940,7 @@ def render_dashboard(
     a {{ color: inherit; text-decoration: none; }}
     .app-shell {{
       display: grid;
-      grid-template-columns: 72px minmax(0, 1fr) 280px;
+      grid-template-columns: 72px minmax(0, 1fr);
       gap: 12px;
       min-height: 100vh;
       padding: 14px;
@@ -4300,6 +4308,61 @@ def render_dashboard(
       line-height: 1.3;
       text-align: right;
     }}
+    .portfolio-overview {{
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-soft);
+      padding: 12px;
+    }}
+    .portfolio-overview-title {{
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 8px;
+    }}
+    .portfolio-overview-title b {{ color: var(--ink); font-size: 14px; }}
+    .portfolio-overview-grid {{
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }}
+    .portfolio-overview-grid .card {{ padding: 10px; }}
+    .portfolio-overview-grid .metric {{ font-size: 20px; }}
+    .section-collapsible {{
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }}
+    .section-collapsible > summary {{
+      cursor: pointer;
+      list-style: none;
+      padding: 14px 16px;
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 850;
+    }}
+    .section-collapsible > summary::-webkit-details-marker {{ display: none; }}
+    .section-collapsible > summary::before {{
+      content: "▸";
+      display: inline-block;
+      width: 18px;
+      color: var(--blue);
+      transition: transform 0.15s ease;
+    }}
+    .section-collapsible[open] > summary {{ border-bottom: 1px solid var(--line); background: var(--panel-soft); }}
+    .section-collapsible[open] > summary::before {{ transform: rotate(90deg); }}
+    .section-collapsible > .section,
+    .section-collapsible > div > .section {{ margin-top: 0; }}
+    .section-collapsible > .section.panel,
+    .section-collapsible > .section.chart,
+    .section-collapsible > .section.grid,
+    .section-collapsible > .section.stress-grid,
+    .section-collapsible > div > .section {{ border: 0; box-shadow: none; border-radius: 0; }}
     .kpi-table {{
       margin: 0;
       background: transparent;
@@ -4453,6 +4516,7 @@ def render_dashboard(
       .topbar {{ display: block; }}
       .top-actions {{ margin-top: 10px; flex-wrap: wrap; }}
       .grid, .metric-grid, .insight-strip, .risk-list, .table-grid, .brief-grid {{ grid-template-columns: 1fr; }}
+      .portfolio-overview-grid {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
       .summary-rail {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
       .summary-lead {{ grid-column: 1 / -1; }}
       .asset-tabs {{
@@ -4515,7 +4579,9 @@ def render_dashboard(
 {update_summary_html}
       <div class="asset-tabs">{asset_tabs_html}</div>
 
-      <section class="hero">
+      <details class="section-collapsible">
+        <summary>研究总览与模型说明</summary>
+        <section class="hero">
         <div class="hero-content">
           <div>
             <div class="eyebrow">台灣股市穩健量化引擎</div>
@@ -4533,24 +4599,39 @@ def render_dashboard(
             <div class="card"><div class="metric">{shrink_dd.min() * 100:.2f}%</div><p class="metric-label">收缩协方差最大回撤</p></div>
           </div>
         </div>
-      </section>
+        </section>
+      </details>
 
 {model_html}
 
-{rebalance_execution_calendar_html}
+<details class="section-collapsible">
+  <summary>调仓日历与模拟执行记录</summary>
+  {rebalance_execution_calendar_html}
+</details>
 
-{trade_signal_html}
+<details class="section-collapsible">
+  <summary>全部策略监控与建议单</summary>
+  {trade_signal_html}
+</details>
 
 {decision_summary_html}
 
-{group_risk_html}
+<details class="section-collapsible">
+  <summary>群组风险与策略结构</summary>
+  {group_risk_html}
+</details>
 
-{universe_strategy_html}
+<details class="section-collapsible">
+  <summary>股票池策略与机制</summary>
+  {universe_strategy_html}
+</details>
 
-      <section id="risk-map" class="section chart chart-wide">
+      <details id="risk-map" class="section-collapsible">
+        <summary>隐藏风险：相关性热力图与风险贡献</summary>
+        <section class="section chart chart-wide">
         <div class="analysis-note"><b>热力图分析：</b>{html.escape(heatmap_advice)}</div>
         {charts["heatmap"]}
-      </section>
+        </section>
       <section class="section grid">
         <div class="panel">
           <h2>隐藏同源风险</h2>
@@ -4580,8 +4661,11 @@ def render_dashboard(
         <div class="analysis-note"><b>回撤曲线分析：</b>{html.escape(drawdown_advice)}</div>
         {charts["drawdown"]}
       </section>
+      </details>
 
-      <div id="backtest">{backtest_html}</div>
+      <details id="backtest" class="section-collapsible">
+        <summary>滚动回测与绩效曲线</summary>
+        {backtest_html}
 
       <section class="section panel stress-grid">
         <div>
@@ -4593,21 +4677,28 @@ def render_dashboard(
           <div class="card"><div class="metric">{shrink_stress * 100:.2f}%</div><p class="metric-label">收缩协方差压力估计损失</p></div>
         </div>
       </section>
+      </details>
 
-      <section class="section panel">
+      <details class="section-collapsible">
+        <summary>组合明细（权重与风险贡献）</summary>
+        <section class="section panel">
         <h2>组合明细</h2>
         <div class="analysis-note"><b>权重与风险贡献总览：</b>{html.escape(weight_advice)} {html.escape(risk_advice)}</div>
         <table>
           <thead><tr><th>代码</th><th>名称</th><th>普通权重</th><th>收缩权重</th><th>普通风险贡献</th><th>收缩风险贡献</th></tr></thead>
           <tbody>{rows}</tbody>
         </table>
-      </section>
+        </section>
+      </details>
 
-      <section id="issues" class="section panel issues">
+      <details id="issues" class="section-collapsible issues">
+        <summary>数据问题记录</summary>
+        <section class="section panel">
         <h2>数据问题记录</h2>
         <ul>{issues_html}</ul>
         <p class="footer-note">页面由本地脚本生成，不包含 API Key、Token 或交易权限。压力情境仅用于研究解释，不构成投资建议。</p>
-      </section>
+        </section>
+      </details>
     </main>
 {order_sidebar_html}
   </div>
