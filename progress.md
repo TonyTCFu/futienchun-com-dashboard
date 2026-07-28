@@ -13,7 +13,9 @@
 
 - 已执行 Python 编译、YAML 解析与 `git diff --check`，通过。
 - 已执行本地页面检查：更新日期 `2026-07-28`、行情/回测序列最新日 `2026-07-28`。
-- 当前公网仍为 `2026-07-27`，待部署仓库推送和 Render 发布完成后复核。
+- 已同步 Obsidian 研究摘要与 QA 基线：AI 供应链权重 `30.57%`、风险贡献 `50.49%`、风险-权重差 `+19.92%`、`trade_status=settled_4`。
+- 已执行 `python3 scripts/run_local_qa_checks.py --skip-dashboard-fixture`，结果 `local_qa_checks_ok`；研究摘要同步、关键数字和旧格式交易兼容检查均通过。
+- 公网已切换到 `2026-07-28`：`/healthz=ok`，首页正文与行情日期均为 `2026-07-28`，待自动落账 `0` 笔，卖出信号残留为 0，`/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 均为 `fe0e6349e0caa366a8a3bc59d949c609c77d12695fd0b370cf52510fe00e08d7`。
 
 ## 2026-07-27 收盘补跑与云端自动化防线
 

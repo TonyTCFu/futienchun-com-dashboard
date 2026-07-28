@@ -11,7 +11,7 @@ EXPECTED_METRICS = {
     "ai_weight_percent": "30.57%",
     "risk_contribution_percent": "50.49%",
     "risk_weight_gap_percent": "+19.92%",
-    "trade_status": "settled_2",
+    "trade_status": "settled_4",
 }
 
 
@@ -24,7 +24,7 @@ def validate_metrics(dashboard_path: Path) -> dict[str, str]:
         "ai_weight_percent": r"AI 供应链权重 ([0-9.]+%)",
         "risk_contribution_percent": r"AI 供应链权重 [0-9.]+%，风险贡献 ([0-9.]+%)",
         "risk_weight_gap_percent": r"风险-权重差 ([+-][0-9.]+%)",
-        "trade_status": r"本轮没有新的待自动落账调仓；已有 2 笔本日模拟调仓转为观察",
+        "trade_status": r"本轮没有新的待自动落账调仓；已有 4 笔本日模拟调仓转为观察",
     }
 
     actual: dict[str, str] = {}
