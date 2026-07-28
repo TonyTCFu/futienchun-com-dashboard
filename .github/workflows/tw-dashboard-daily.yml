@@ -87,12 +87,12 @@ jobs:
             scripts/validate_legacy_trade_batch_status.py
 
       - name: Rebuild dashboard
+        id: rebuild-dashboard
         if: steps.trading-day.outputs.is_open == 'true'
         run: |
           python src/risk_dashboard.py \
             --start 2024-01 \
             --end "$(date +%Y-%m)" \
-            --offline-cache \
             --allow-stale-cache \
             --model-portfolio \
             --model-build-date 2026-06-03 \
@@ -104,6 +104,7 @@ jobs:
             --execute-simulated-trades
 
       - name: Verify generated dashboard
+        id: verify-generated-dashboard
         if: steps.trading-day.outputs.is_open == 'true'
         run: |
           python - <<'PY'
@@ -143,3 +144,15 @@ jobs:
           git add dashboard data scripts
           git commit -m "Update Taiwan dashboard daily close"
           git push
+
+      - name: Publish failure summary
+        if: failure()
+        run: |
+          {
+            echo "## Taiwan Dashboard Daily Close failed"
+            echo "- Commit: $GITHUB_SHA"
+            echo "- Trading-day check: ${{ steps.trading-day.outcome }}"
+            echo "- Rebuild: ${{ steps.rebuild-dashboard.outcome }}"
+            echo "- Dashboard verification: ${{ steps.verify-generated-dashboard.outcome }}"
+            echo "- The full failed command is shown in the failed step log above."
+          } >> "$GITHUB_STEP_SUMMARY"

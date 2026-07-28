@@ -1,0 +1,9 @@
+market_date=2026-07-28
+market_mode=close
+quote_time=2026-07-28T20:49:29
+total_cost=252931.86
+current_market_value=243198.91
+unrealized_pnl=-9732.95
+unrealized_pnl_pct=-0.038481
+quote_count=13
+missing_count=0

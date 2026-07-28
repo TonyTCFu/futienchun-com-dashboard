@@ -1,5 +1,20 @@
 # Loop Engineering Progress
 
+## 2026-07-28 收盘日更失败排查与自检修复
+
+### Actions
+
+- 已确认 GitHub Actions 日更实际触发 3 次，均失败在 `Rebuild dashboard`；不是未触发，也不是 Render 缓存问题。
+- 根因是云端工作流使用 `--offline-cache`，但 `data/cache/` 与 `data/matrix_cache/` 被 `.gitignore` 排除，只依赖 GitHub Actions 缓存；缓存未命中时没有行情可供重建，失败后也不会保存新缓存，形成连续失败。
+- 本机按正式收盘口径补跑成功，Dashboard 已推进到更新日期与行情/回测序列最新日 `2026-07-28`，并生成当天市值、模拟持仓与模拟成交产物。
+- 已修正 `.github/workflows/tw-dashboard-daily.yml`：云端重建不再强制离线缓存，允许直接读取 TWSE 公开收盘资料；新增失败摘要，记录交易日判定、重建与页面验收状态；页面日期/行情日期不等于当天时仍会主动失败。
+
+### Verification Log
+
+- 已执行 Python 编译、YAML 解析与 `git diff --check`，通过。
+- 已执行本地页面检查：更新日期 `2026-07-28`、行情/回测序列最新日 `2026-07-28`。
+- 当前公网仍为 `2026-07-27`，待部署仓库推送和 Render 发布完成后复核。
+
 ## 2026-07-27 收盘补跑与云端自动化防线
 
 ### Actions
