@@ -1,5 +1,14 @@
 # 稳健投资组合量化模型构建 项目上下文
 
+## 2026-07-29 收盘日更
+
+- 2026-07-29 已按 TWSE 官方市場開休市資料判定為交易日；本輪保持只讀公開行情與本地模擬盤邊界，未讀取敏感配置，未呼叫券商交易端。
+- TWSE 公開資料在 13:47 至 14:00 期間仍分批更新；14:04 確認重點標的補到 `115/07/29` 後，正式重建推進 Dashboard 更新日期與行情/回測序列最新日到 `2026-07-29`。
+- 首次不帶 `--offline-cache` 的本機重建卡在 TWSE SSL handshake 約 `real 1115.13` 後中止；改用 `--offline-cache --allow-stale-cache` 讀取已刷新月快取，正式重建用時 `real 52.36`。
+- 本輪生成 `data/model_portfolio_market_2026-07-29.csv`，`quote_count=13`、`missing_count=0`，模型盤市值 `NT$227,288.96`，未實現盈虧 `NT$-12,394.20`。
+- 本地模擬盤自動落帳 `5` 筆；Dashboard 顯示已落帳 `5` 筆、待自動落帳 `0` 筆，策略監控 `signal-pill sell=0`。
+- QA 基線與 Obsidian `台股量化基金.md` 已同步到 `AI 供應鏈權重 29.61%`、`風險貢獻 49.53%`、`風險-權重差 +19.91%`、`trade_status=settled_5`；`run_local_qa_checks.py --skip-dashboard-fixture` 通過。
+
 ## 2026-07-28 日更自检修复
 
 - 今天 GitHub Actions 日更不是没触发，而是连续 3 次在 `Rebuild dashboard` 失败；根因是云端工作流强制 `--offline-cache`，而被 `.gitignore` 排除的行情缓存没有可依赖的初始内容。

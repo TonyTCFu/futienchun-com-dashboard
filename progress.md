@@ -1,5 +1,23 @@
 # Loop Engineering Progress
 
+## 2026-07-29 收盘日更
+
+### Actions
+
+- 已按 TWSE 官方 2026 年市場開休市資料判定 `2026-07-29` 為週三且不在休市清單內，按交易日處理；本輪未讀取 `.env`、`.shioaji.local.env`、API key 或 token，未呼叫券商下單、改單、撤單或帳戶交易接口。
+- 13:47 起輪詢 TWSE 公開 `STOCK_DAY`；初始重點標的仍停在 `2026-07-28`，14:04 確認 `0050`、`2330`、`006208`、`2317`、`2412` 均補到 `115/07/29` 後才進入正式重建。
+- 第一次雲端同口徑不帶 `--offline-cache` 的本機重建卡在 TWSE SSL handshake，等待約 `real 1115.13` 後中止；其後用 `--offline-cache --allow-stale-cache` 讀取已刷新月快取完成正式重建，用時 `real 52.36`。
+- Dashboard 已推進為 `2026-07-29 / 2026-07-29`；生成 `data/model_portfolio_market_2026-07-29.csv` 與 summary，`quote_count=13`、`missing_count=0`，模型盤市值 `NT$227,288.96`，未實現盈虧 `NT$-12,394.20`。
+- 本地模擬盤自動落帳 `2026-07-29` 模擬成交 `5` 筆，執行後 Dashboard 顯示已落帳模擬成交 `5` 筆、待自動落帳 `0` 筆，策略監控 `signal-pill sell=0`。
+- 已同步研究摘要 QA 基線與 iCloud Obsidian `台股量化基金.md`：`AI 供應鏈權重 29.61%`、`風險貢獻 49.53%`、`風險-權重差 +19.91%`、`trade_status=settled_5`。
+
+### Verification Log
+
+- 已執行 Python 編譯，通過。
+- 已執行 `python3 scripts/run_local_qa_checks.py --skip-dashboard-fixture`，結果 `local_qa_checks_ok`。
+- 已執行本地頁面解析：`今日 Dashboard 更新日期=2026-07-29`、`行情/回測序列最新日期=2026-07-29`、`待自動落帳=0`、`signal-pill sell=0`。
+- 已執行 `git diff --check`，通過。
+
 ## 2026-07-28 收盘日更失败排查与自检修复
 
 ### Actions
