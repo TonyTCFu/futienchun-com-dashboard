@@ -7,6 +7,7 @@
 - 不帶 `--offline-cache` 的本機正式重建會在 TWSE SSL handshake 卡住；中止後使用 `--offline-cache --allow-stale-cache` 成功讀取已刷新月快取，Dashboard 與行情/回測日均推進到 `2026-07-29`。
 - 本輪本地模擬盤自動落帳 `5` 筆賣出，待自動落帳為 `0`，頁面無紅色賣出 signal pill 殘留。
 - 研究摘要 QA 基線已漂移到 `AI 供應鏈權重 29.61%`、`風險貢獻 49.53%`、`風險-權重差 +19.91%`、`trade_status=settled_5`；本地 QA 較快模式通過。
+- Workspace 與部署倉庫均已推送；Render 首頁正文、`/healthz`、`/version.json`、首頁 `ETag` 與 `X-Dashboard-Version` 已驗收，公網版本 hash 為 `ef1fd48d4d940915d3c19698502b57418b66e08867488ffe2f997e07ed4b694f`。
 
 ## 2026-07-28 云端日更失败根因
 

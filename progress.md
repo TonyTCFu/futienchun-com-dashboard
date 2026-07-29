@@ -10,6 +10,8 @@
 - Dashboard 已推進為 `2026-07-29 / 2026-07-29`；生成 `data/model_portfolio_market_2026-07-29.csv` 與 summary，`quote_count=13`、`missing_count=0`，模型盤市值 `NT$227,288.96`，未實現盈虧 `NT$-12,394.20`。
 - 本地模擬盤自動落帳 `2026-07-29` 模擬成交 `5` 筆，執行後 Dashboard 顯示已落帳模擬成交 `5` 筆、待自動落帳 `0` 筆，策略監控 `signal-pill sell=0`。
 - 已同步研究摘要 QA 基線與 iCloud Obsidian `台股量化基金.md`：`AI 供應鏈權重 29.61%`、`風險貢獻 49.53%`、`風險-權重差 +19.91%`、`trade_status=settled_5`。
+- Workspace 提交 `1f1eca0` 已推送 `origin/main`；部署倉庫提交 `5adade1` 已推送 `futienchun-com-dashboard/main`。
+- 公網已切換到 `2026-07-29`：`/healthz=ok`，首頁正文與行情日期均為 `2026-07-29`，待自動落帳 `0` 筆，賣出信號殘留為 `0`，`/version.json`、首頁 `ETag` 與 `X-Dashboard-Version` 均為 `ef1fd48d4d940915d3c19698502b57418b66e08867488ffe2f997e07ed4b694f`。
 
 ### Verification Log
 
@@ -17,6 +19,7 @@
 - 已執行 `python3 scripts/run_local_qa_checks.py --skip-dashboard-fixture`，結果 `local_qa_checks_ok`。
 - 已執行本地頁面解析：`今日 Dashboard 更新日期=2026-07-29`、`行情/回測序列最新日期=2026-07-29`、`待自動落帳=0`、`signal-pill sell=0`。
 - 已執行 `git diff --check`，通過。
+- 已執行公網驗收：正文命中 `2026-07-29 / 2026-07-29`，`/healthz=ok`，`/version.json`、首頁 `X-Dashboard-Version` 與 weak `ETag` 均為 `ef1fd48d4d940915d3c19698502b57418b66e08867488ffe2f997e07ed4b694f`。
 
 ## 2026-07-28 收盘日更失败排查与自检修复
 

@@ -8,6 +8,7 @@
 - 本輪生成 `data/model_portfolio_market_2026-07-29.csv`，`quote_count=13`、`missing_count=0`，模型盤市值 `NT$227,288.96`，未實現盈虧 `NT$-12,394.20`。
 - 本地模擬盤自動落帳 `5` 筆；Dashboard 顯示已落帳 `5` 筆、待自動落帳 `0` 筆，策略監控 `signal-pill sell=0`。
 - QA 基線與 Obsidian `台股量化基金.md` 已同步到 `AI 供應鏈權重 29.61%`、`風險貢獻 49.53%`、`風險-權重差 +19.91%`、`trade_status=settled_5`；`run_local_qa_checks.py --skip-dashboard-fixture` 通過。
+- Workspace 提交 `1f1eca0`、部署倉庫提交 `5adade1` 已推送；公網首頁正文命中 `2026-07-29 / 2026-07-29`，`/healthz=ok`，`/version.json`、首頁 `ETag` 與 `X-Dashboard-Version` 一致為 `ef1fd48d4d940915d3c19698502b57418b66e08867488ffe2f997e07ed4b694f`。
 
 ## 2026-07-28 日更自检修复
 
