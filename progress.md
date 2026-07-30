@@ -1,5 +1,24 @@
 # Loop Engineering Progress
 
+## 2026-07-30 收盘日更
+
+### Actions
+
+- 已按 TWSE 官方 2026 年市场开休市资料判定 `2026-07-30` 为周四且不在休市清单内，按交易日处理；本轮未读取 `.env`、`.shioaji.local.env`、API key 或 token，未调用券商下单、改单、撤单或账户交易接口。
+- 13:46 起轮询 TWSE 公开 `STOCK_DAY`；初始重点标的仍停在 `115/07/29`，13:59 确认 `0050`、`2330`、`006208`、`2317`、`2412` 均补到 `115/07/30` 后才进入正式重建。
+- 第一次不带 `--offline-cache` 的本机重建卡在 TWSE SSL handshake，等待约 `real 346.52` 后中止；随后只用 TWSE 公开月资料刷新 15 檔 `202607` 本地月缓存，再用 `--offline-cache --allow-stale-cache` 完成正式重建，用时 `real 24.70`。
+- Dashboard 已推进为 `2026-07-30 / 2026-07-30`；生成 `data/model_portfolio_market_2026-07-30.csv` 与 summary，`quote_count=13`、`missing_count=0`，模型盘市值 `NT$216,853.05`，未实现盈亏 `NT$-10,606.89`。
+- 本地模拟盘自动落账 `2026-07-30` 模拟成交 `8` 笔，执行后 Dashboard 显示已落账模拟成交 `8` 笔、待自动落账 `0` 笔，策略监控 `signal-pill sell=0`。
+- 已同步研究摘要 QA 基线与 iCloud Obsidian `台股量化基金.md`：`AI 供应链权重 28.91%`、`风险贡献 48.78%`、`风险-权重差 +19.87%`、`trade_status=settled_8`。
+- Workspace 提交与部署仓库推送完成后，需以公网首页正文、`/healthz`、`/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 验收 `442a8c27c8a50974d06edf7d95d6fa74f0e3c02e71a5c2fb03e8f5222b4463a8`。
+
+### Verification Log
+
+- 已执行 Python 编译，通過。
+- 已执行正式 public-close 本地重建：`--start 2024-01 --end 2026-07 --offline-cache --allow-stale-cache --model-portfolio --model-build-date 2026-06-03 --model-invest-ratio 0.75 --model-method multi-factor-shrink --ai-tilt moderate --market-source public-close --market-mode close --execute-simulated-trades`，结果成功生成 `dashboard/index.html`。
+- 已执行 `python3 scripts/run_local_qa_checks.py --skip-dashboard-fixture`，结果 `local_qa_checks_ok`。
+- 已执行本地页面解析：`今日 Dashboard 更新日期=2026-07-30`、`行情/回测序列最新日期=2026-07-30`、`待自动落账=0`、`signal-pill sell=0`。
+
 ## 2026-07-29 收盘日更
 
 ### Actions
