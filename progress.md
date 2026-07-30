@@ -10,7 +10,8 @@
 - Dashboard 已推进为 `2026-07-30 / 2026-07-30`；生成 `data/model_portfolio_market_2026-07-30.csv` 与 summary，`quote_count=13`、`missing_count=0`，模型盘市值 `NT$216,853.05`，未实现盈亏 `NT$-10,606.89`。
 - 本地模拟盘自动落账 `2026-07-30` 模拟成交 `8` 笔，执行后 Dashboard 显示已落账模拟成交 `8` 笔、待自动落账 `0` 笔，策略监控 `signal-pill sell=0`。
 - 已同步研究摘要 QA 基线与 iCloud Obsidian `台股量化基金.md`：`AI 供应链权重 28.91%`、`风险贡献 48.78%`、`风险-权重差 +19.87%`、`trade_status=settled_8`。
-- Workspace 提交与部署仓库推送完成后，需以公网首页正文、`/healthz`、`/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 验收 `442a8c27c8a50974d06edf7d95d6fa74f0e3c02e71a5c2fb03e8f5222b4463a8`。
+- Workspace 提交 `7598e80` 已推送 `origin/main`；部署仓库提交 `7da542d` 已推送 `futienchun-com-dashboard/main`。
+- 公网已切换到 `2026-07-30`：`/healthz=ok`，首页正文与行情日期均为 `2026-07-30`，待自动落账 `0` 笔，卖出信号残留为 `0`，`/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 均为 `442a8c27c8a50974d06edf7d95d6fa74f0e3c02e71a5c2fb03e8f5222b4463a8`。
 
 ### Verification Log
 
@@ -18,6 +19,7 @@
 - 已执行正式 public-close 本地重建：`--start 2024-01 --end 2026-07 --offline-cache --allow-stale-cache --model-portfolio --model-build-date 2026-06-03 --model-invest-ratio 0.75 --model-method multi-factor-shrink --ai-tilt moderate --market-source public-close --market-mode close --execute-simulated-trades`，结果成功生成 `dashboard/index.html`。
 - 已执行 `python3 scripts/run_local_qa_checks.py --skip-dashboard-fixture`，结果 `local_qa_checks_ok`。
 - 已执行本地页面解析：`今日 Dashboard 更新日期=2026-07-30`、`行情/回测序列最新日期=2026-07-30`、`待自动落账=0`、`signal-pill sell=0`。
+- 已执行公网验收：正文命中 `2026-07-30 / 2026-07-30`，`/healthz=ok`，`/version.json`、首页 `X-Dashboard-Version` 与 weak `ETag` 均为 `442a8c27c8a50974d06edf7d95d6fa74f0e3c02e71a5c2fb03e8f5222b4463a8`。
 
 ## 2026-07-29 收盘日更
 

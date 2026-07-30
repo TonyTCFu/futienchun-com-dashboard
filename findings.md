@@ -7,7 +7,7 @@
 - 不带 `--offline-cache` 的本机正式重建再次卡在 TWSE SSL handshake；中止后使用公开月资料刷新 15 檔 `202607` 本地缓存，并用 `--offline-cache --allow-stale-cache` 成功推进到 `2026-07-30`。
 - 本轮本地模拟盘自动落账 `8` 笔，待自动落账为 `0`，页面无红色卖出 signal pill 残留。
 - 研究摘要 QA 基线已漂移到 `AI 供应链权重 28.91%`、`风险贡献 48.78%`、`风险-权重差 +19.87%`、`trade_status=settled_8`；本地 QA 较快模式通过。
-- 待公网部署完成后，验收目标版本 hash 为 `442a8c27c8a50974d06edf7d95d6fa74f0e3c02e71a5c2fb03e8f5222b4463a8`，需确认首页正文、`/healthz`、`/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 一致。
+- Workspace 与部署仓库均已推送；Render 首页正文、`/healthz`、`/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 已验收，公网版本 hash 为 `442a8c27c8a50974d06edf7d95d6fa74f0e3c02e71a5c2fb03e8f5222b4463a8`。
 
 ## 2026-07-29 收盘日更
 
