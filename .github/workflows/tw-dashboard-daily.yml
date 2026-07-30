@@ -77,8 +77,44 @@ jobs:
           print(f"reason={'twse_holiday' if is_holiday else 'twse_open'}")
           PY
 
-      - name: Compile scripts
+      - name: Check dashboard already current
+        id: current-dashboard
         if: steps.trading-day.outputs.is_open == 'true'
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          from __future__ import annotations
+
+          import os
+          from datetime import datetime
+          from pathlib import Path
+          from zoneinfo import ZoneInfo
+
+          today = datetime.now(ZoneInfo("Asia/Taipei")).date().isoformat()
+          html_path = Path("dashboard/index.html")
+          if os.environ.get("GITHUB_EVENT_NAME") != "schedule" or not html_path.exists():
+              print("is_current=false")
+              raise SystemExit
+
+          html = html_path.read_text(encoding="utf-8")
+          required = [
+              f"今日 Dashboard 更新日期：{today}",
+              f"行情/回测序列最新日期：{today}",
+              "待自动落账</span><b>0 笔</b>",
+          ]
+          print(f"is_current={'true' if all(fragment in html for fragment in required) else 'false'}")
+          PY
+
+      - name: Skip duplicate daily close
+        if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current == 'true'
+        run: |
+          {
+            echo "## Taiwan Dashboard Daily Close skipped"
+            echo "- Reason: repository dashboard is already current for today."
+            echo "- Date: ${{ steps.trading-day.outputs.date }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Compile scripts
+        if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current != 'true'
         run: |
           python -m py_compile \
             src/risk_dashboard.py \
@@ -88,7 +124,7 @@ jobs:
 
       - name: Rebuild dashboard
         id: rebuild-dashboard
-        if: steps.trading-day.outputs.is_open == 'true'
+        if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current != 'true'
         run: |
           python src/risk_dashboard.py \
             --start 2024-01 \
@@ -105,7 +141,7 @@ jobs:
 
       - name: Verify generated dashboard
         id: verify-generated-dashboard
-        if: steps.trading-day.outputs.is_open == 'true'
+        if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current != 'true'
         run: |
           python - <<'PY'
           from __future__ import annotations
@@ -133,7 +169,7 @@ jobs:
           PY
 
       - name: Commit generated dashboard
-        if: steps.trading-day.outputs.is_open == 'true'
+        if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current != 'true'
         run: |
           if git diff --quiet -- dashboard data scripts; then
             echo "No dashboard changes to commit."
