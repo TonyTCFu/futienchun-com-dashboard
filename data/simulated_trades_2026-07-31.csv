@@ -1,0 +1,4 @@
+﻿trade_id,trade_date,symbol,name,action,shares,trade_price,gross_amount,fee,tax,net_amount,realized_cost,realized_pnl,remaining_shares,reason,status
+paper-20260731-0056-sell-01-c68cec9af0,2026-07-31,0056,元大高股息,sell,45,49.4800,2226.60,3.00,3.00,2220.60,2394.18,-173.58,134,模拟盘连续收盘亏损超过约 6%，已连续观察至少 2 天，建议先减码 25%。,executed
+paper-20260731-00881-sell-01-d6b1422464,2026-07-31,00881,國泰台灣5G+,sell,15,50.6000,759.00,1.00,1.00,757.00,845.70,-88.70,45,模拟盘连续收盘亏损超过约 6%，已连续观察至少 2 天，建议先减码 25%。,executed
+paper-20260731-2303-sell-01-909e742a66,2026-07-31,2303,聯電,sell,9,121.0000,1089.00,2.00,3.00,1084.00,1216.75,-132.75,26,模拟盘连续收盘亏损超过约 6%，已连续观察至少 2 天，建议先减码 25%。,executed

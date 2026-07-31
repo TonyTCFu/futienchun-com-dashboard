@@ -1,5 +1,41 @@
 # Loop Engineering Progress
 
+## 2026-07-30 GitHub Actions 重复日更失败修复
+
+### Actions
+
+- 已确认 Tony 收到的 `dashboard run failed` 邮件来自部署仓库 `TonyTCFu/futienchun-com-dashboard` 的 `Taiwan Dashboard Daily Close` GitHub Actions；失败 run 为 `30536320907` 与 `30538921272`，均发生在当天第一次成功日更之后。
+- 失败根因已核实为同一天多档 schedule 重复执行：`30533099913` 已成功并提交部署仓库 `c617ba8`，后续 18:51 / 19:32 两档 schedule 又在当天已落账状态上重建，`Rebuild dashboard` 报 `运行失败：交易日交集少于 60，无法稳定估计协方差。`
+- 已修复 `.github/workflows/tw-dashboard-daily.yml`：新增 `Check dashboard already current` 与 `Skip duplicate daily close` 步骤；仅在 `schedule` 事件且仓库内 Dashboard 已包含今天更新日期、行情/回测日期与 `0 笔待自动落账` 时跳过后续 compile/rebuild/verify/commit。
+- 手动 `workflow_dispatch` 不受跳过闸门影响，仍可强制重建；交易日首个 schedule 如果页面未更新，也仍会正常重建。
+- 已将同一 workflow 修复同步到部署仓库并推送 `1442eb2`，同时更新 Workspace 中的 workflow 真源。
+
+### Verification Log
+
+- 已执行部署仓库与 Workspace workflow YAML 解析，`python yaml.safe_load` 与 Ruby `YAML.load_file` 均通过。
+- 已执行本地闸门 smoke：在当前 `2026-07-30` Dashboard 上，`GITHUB_EVENT_NAME=schedule` 输出 `missing=[]` 与 `is_current=true`。
+- 已执行 `git diff --check -- .github/workflows/tw-dashboard-daily.yml`，通过。
+- 已执行修复后公网验收：`/healthz=ok`，正文仍命中 `2026-07-30 / 2026-07-30`、`已落账模拟成交 8 笔`、`待自动落账 0 笔`，`signal-pill sell=0`；Render 重新部署后的 `/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 为 `6cce9e6e6f63943b704890dbe24ff434100e9eba3bb001876a436e9800adde82`。
+- 未手动触发 `workflow_dispatch`，因为该事件按设计会绕过跳过闸门并强制重建，可能再次写入日更产物。
+
+## 2026-07-30 16:30 漏跑补偿复核
+
+### Actions
+
+- 已按 TWSE 官方公开 `STOCK_DAY` 交易资料确认 `0050` 在 `115/07/30` 有当日成交资料，`2026-07-30` 按交易日处理；本轮未读取 `.env`、`.shioaji.local.env`、API key 或 token，未调用券商下单、改单、撤单或账户交易接口。
+- 已复核主日更落地状态：本地 `dashboard/index.html` SHA-256 为 `442a8c27c8a50974d06edf7d95d6fa74f0e3c02e71a5c2fb03e8f5222b4463a8`，Dashboard 正文命中 `今日 Dashboard 更新日期：2026-07-30` 与 `行情/回测序列最新日期：2026-07-30`。
+- 已复核本地 `data` 产物：`data/model_portfolio_market_2026-07-30.csv`、summary、`data/simulated_trades_2026-07-30.csv`、`data/simulated_positions_2026-07-30.csv` 与 latest 均存在；summary 为 `quote_count=13`、`missing_count=0`，模拟成交 CSV 为表头外 `8` 笔。
+- 已复核 Workspace 发布：本地 HEAD、`origin/main` 与远端 `main` 均为 `305dd11dfe304a96fdebceadc3d043541688454b`；该提交为 `Record 2026-07-30 public dashboard verification`。
+- 已复核公网：`/healthz=ok`，公网首页正文命中 `2026-07-30 / 2026-07-30`、`已落账模拟成交 8 笔`、`待自动落账 0 笔`，首页 `X-Dashboard-Version`、weak `ETag` 与 `/version.json` 均为 `442a8c27c8a50974d06edf7d95d6fa74f0e3c02e71a5c2fb03e8f5222b4463a8`。
+- 结论：主日更已完成并通过公网缓存验收，本轮不补跑、不重建、不写 CSV、不推送部署仓库；仅提交并推送本次 Workspace 交接记录。
+
+### Verification Log
+
+- 已执行 TWSE `STOCK_DAY` 公开交易状态检查：`stat=OK`、`date=20260730`、最后一列交易日为 `115/07/30`。
+- 已执行本地页面与产物解析，结果通过。
+- 已执行公网首页、`/healthz`、`/version.json` 与 header 验收，结果通过。
+- 已执行远端 HEAD 复核，结果本地 HEAD、`origin/main` 与远端 `main` 一致。
+
 ## 2026-07-30 收盘日更
 
 ### Actions

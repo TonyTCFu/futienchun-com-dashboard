@@ -8,10 +8,10 @@ from validate_research_brief_sync import DEFAULT_DASHBOARD, extract_research_bri
 
 
 EXPECTED_METRICS = {
-    "ai_weight_percent": "28.91%",
-    "risk_contribution_percent": "48.78%",
-    "risk_weight_gap_percent": "+19.87%",
-    "trade_status": "settled_8",
+    "ai_weight_percent": "27.99%",
+    "risk_contribution_percent": "48.01%",
+    "risk_weight_gap_percent": "+20.02%",
+    "trade_status": "settled_3",
 }
 
 
@@ -24,7 +24,7 @@ def validate_metrics(dashboard_path: Path) -> dict[str, str]:
         "ai_weight_percent": r"AI 供应链权重 ([0-9.]+%)",
         "risk_contribution_percent": r"AI 供应链权重 [0-9.]+%，风险贡献 ([0-9.]+%)",
         "risk_weight_gap_percent": r"风险-权重差 ([+-][0-9.]+%)",
-        "trade_status": r"本轮没有新的待自动落账调仓；已有 8 笔本日模拟调仓转为观察",
+        "trade_status": r"本轮没有新的待自动落账调仓；已有 3 笔本日模拟调仓转为观察",
     }
 
     actual: dict[str, str] = {}

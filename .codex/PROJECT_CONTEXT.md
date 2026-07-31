@@ -1,5 +1,17 @@
 # 稳健投资组合量化模型构建 项目上下文
 
+## 2026-07-30 GitHub Actions 重复日更失败修复
+
+- 已确认 7/30 晚上 `dashboard run failed` 邮件来自部署仓库 GitHub Actions 后两档 schedule 重复跑；当天第一档 run `30533099913` 已成功并提交 `c617ba8`，后续 run `30536320907`、`30538921272` 在 `Rebuild dashboard` 报 `交易日交集少于 60`。
+- `.github/workflows/tw-dashboard-daily.yml` 已新增 schedule-only 的已更新闸门：若仓库内 Dashboard 已是今天、行情/回测日期也是今天且待自动落账为 `0`，则跳过 compile/rebuild/verify/commit；`workflow_dispatch` 仍可强制重建。
+- 部署仓库修复提交 `1442eb2` 已推送；Workspace workflow 已同步。验证包括 YAML 解析、`git diff --check` 与本地闸门 smoke 输出 `is_current=true`。修复推送触发 Render 重新部署后，公网正文仍为 `2026-07-30 / 2026-07-30`、`8` 笔已落账、`0` 笔待自动落账，缓存版本为 `6cce9e6e6f63943b704890dbe24ff434100e9eba3bb001876a436e9800adde82`。
+
+## 2026-07-30 16:30 漏跑补偿复核
+
+- 16:30 watchdog 复核确认 `2026-07-30` 主日更已完成，不需要补跑。TWSE 官方 `STOCK_DAY` 对 `0050` 返回 `stat=OK` 且包含 `115/07/30` 成交资料。
+- 本地 Dashboard SHA-256、公网 `/version.json`、首页 `ETag` 与 `X-Dashboard-Version` 均为 `442a8c27c8a50974d06edf7d95d6fa74f0e3c02e71a5c2fb03e8f5222b4463a8`；公网正文命中 `2026-07-30 / 2026-07-30`、`已落账模拟成交 8 笔`、`待自动落账 0 笔`。
+- 复核前 Workspace 本地 HEAD、`origin/main` 与远端 `main` 均为 `305dd11dfe304a96fdebceadc3d043541688454b`；本轮未重建、未写 CSV、未推送部署仓库，未读取敏感配置，未调用券商交易端，仅提交并推送本次 Workspace 交接记录。
+
 ## 2026-07-30 收盘日更
 
 - 2026-07-30 已按 TWSE 官方市场开休市资料判定为交易日；本轮保持只读公开行情与本地模拟盘边界，未读取敏感配置，未调用券商交易端。
