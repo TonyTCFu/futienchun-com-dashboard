@@ -113,6 +113,7 @@ jobs:
 
           import json
           import os
+          import time
           import urllib.request
           from datetime import datetime
           from zoneinfo import ZoneInfo
@@ -125,22 +126,33 @@ jobs:
           errors: list[str] = []
 
           for symbol in symbols:
-              url = (
-                  "https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY"
-                  f"?response=json&date={today.strftime('%Y%m%d')}&stockNo={symbol}"
-              )
-              try:
-                  with urllib.request.urlopen(url, timeout=30) as response:
-                      payload = json.load(response)
-                  rows = payload.get("data") or []
-                  dates = [str(row[0]) for row in rows if row]
-                  latest_dates[symbol] = max(dates) if dates else "none"
-                  if payload.get("stat") != "OK" or target not in dates:
-                      missing.append(f"{symbol}:{latest_dates[symbol]}")
-              except Exception as exc:
-                  latest_dates[symbol] = "error"
-                  errors.append(f"{symbol}:{type(exc).__name__}")
-                  missing.append(f"{symbol}:error")
+              last_error = None
+              for attempt in range(1, 4):
+                  url = (
+                      "https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY"
+                      f"?response=json&date={today.strftime('%Y%m%d')}&stockNo={symbol}"
+                  )
+                  try:
+                      with urllib.request.urlopen(url, timeout=30) as response:
+                          payload = json.load(response)
+                      rows = payload.get("data") or []
+                      dates = [str(row[0]) for row in rows if row]
+                      latest_dates[symbol] = max(dates) if dates else "none"
+                      if payload.get("stat") == "OK" and target in dates:
+                          last_error = None
+                          break
+                      last_error = f"not_ready:{latest_dates[symbol]}"
+                  except Exception as exc:
+                      last_error = f"{type(exc).__name__}"
+                  if attempt < 3:
+                      time.sleep(10)
+              if last_error:
+                  if last_error.startswith("not_ready:"):
+                      missing.append(f"{symbol}:{latest_dates.get(symbol, 'none')}")
+                  else:
+                      latest_dates[symbol] = "error"
+                      errors.append(f"{symbol}:{last_error}")
+                      missing.append(f"{symbol}:error")
 
           ready = not missing and not errors
           print(f"is_ready={'true' if ready else 'false'}")
@@ -163,8 +175,25 @@ jobs:
           {
             echo "## Taiwan Dashboard Daily Close waiting"
             echo "- Reason: required TWSE public STOCK_DAY data is not available for the target date."
-            echo "- No dashboard rebuild, CSV write, simulated trade, commit, or push was performed."
+            echo "- No dashboard rebuild, CSV write, or simulated trade was performed. A public waiting status will be recorded."
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish waiting status to public dashboard
+        if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current != 'true' && steps.public-close.outputs.is_ready != 'true'
+        run: |
+          python scripts/publish_automation_status.py \
+            --status waiting \
+            --date "${{ steps.trading-day.outputs.date }}" \
+            --message "TWSE 公開收盤資料尚未完整到達，下一個工作日更排程會自動重試；本輪未重建 Dashboard、未寫入 CSV、未執行模擬成交。"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dashboard/index.html
+          git commit -m "Record Taiwan dashboard close waiting status"
+          for attempt in 1 2 3; do
+            git push && exit 0
+            sleep 15
+          done
+          exit 1
 
       - name: Skip duplicate daily close
         if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current == 'true'
@@ -181,6 +210,8 @@ jobs:
           python -m py_compile \
             src/risk_dashboard.py \
             scripts/serve_dashboard.py \
+            scripts/publish_automation_status.py \
+            scripts/verify_public_dashboard.py \
             scripts/export_research_brief_markdown.py \
             scripts/validate_legacy_trade_batch_status.py
 
@@ -188,19 +219,33 @@ jobs:
         id: rebuild-dashboard
         if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current != 'true' && steps.public-close.outputs.is_ready == 'true'
         run: |
-          python src/risk_dashboard.py \
-            --start 2024-01 \
-            --end "$(date +%Y-%m)" \
-            --allow-stale-cache \
-            --offline-cache \
-            --model-portfolio \
-            --model-build-date 2026-06-03 \
-            --model-invest-ratio 0.75 \
-            --model-method multi-factor-shrink \
-            --ai-tilt moderate \
-            --market-source public-close \
-            --market-mode close \
-            --execute-simulated-trades
+          for cache_mode in online offline; do
+            for attempt in 1 2; do
+              rebuild_args=(
+                --start 2024-01
+                --end "$(date +%Y-%m)"
+                --allow-stale-cache
+                --model-portfolio
+                --model-build-date 2026-06-03
+                --model-invest-ratio 0.75
+                --model-method multi-factor-shrink
+                --ai-tilt moderate
+                --market-source public-close
+                --market-mode close
+                --execute-simulated-trades
+              )
+              if [ "$cache_mode" = "offline" ]; then
+                rebuild_args+=(--offline-cache)
+              fi
+              if python src/risk_dashboard.py "${rebuild_args[@]}"; then
+                exit 0
+              fi
+              if [ "$attempt" -lt 2 ]; then
+                sleep 20
+              fi
+            done
+          done
+          exit 1
 
       - name: Verify generated dashboard
         id: verify-generated-dashboard
@@ -242,9 +287,23 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add dashboard data scripts
           git commit -m "Update Taiwan dashboard daily close"
-          git push
+          for attempt in 1 2 3; do
+            git push && exit 0
+            sleep 15
+          done
+          exit 1
 
-      - name: Publish failure summary
+      - name: Verify public dashboard
+        id: verify-public-dashboard
+        if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current != 'true' && steps.public-close.outputs.is_ready == 'true'
+        run: |
+          python scripts/verify_public_dashboard.py \
+            --url https://futienchun-com-dashboard.onrender.com \
+            --target-date "${{ steps.trading-day.outputs.date }}" \
+            --retries 12 \
+            --delay 15
+
+      - name: Publish failure status to public dashboard
         if: failure()
         run: |
           {
@@ -253,5 +312,20 @@ jobs:
             echo "- Trading-day check: ${{ steps.trading-day.outcome }}"
             echo "- Rebuild: ${{ steps.rebuild-dashboard.outcome }}"
             echo "- Dashboard verification: ${{ steps.verify-generated-dashboard.outcome }}"
-            echo "- The full failed command is shown in the failed step log above."
+            echo "- Public verification: ${{ steps.verify-public-dashboard.outcome }}"
           } >> "$GITHUB_STEP_SUMMARY"
+          python scripts/publish_automation_status.py \
+            --status failure \
+            --date "$(date +%F)" \
+            --message "云端日更未完成，失败点已写入本页；下一轮排程会自动重试。" \
+            --step "trading-day=${{ steps.trading-day.outcome }};rebuild=${{ steps.rebuild-dashboard.outcome }};dashboard=${{ steps.verify-generated-dashboard.outcome }};public=${{ steps.verify-public-dashboard.outcome }}" \
+            --run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dashboard/index.html
+          git commit -m "Record Taiwan dashboard automation failure status"
+          for attempt in 1 2 3; do
+            git push && exit 0
+            sleep 15
+          done
+          exit 1
