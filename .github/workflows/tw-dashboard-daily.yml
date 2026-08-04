@@ -192,6 +192,7 @@ jobs:
             --start 2024-01 \
             --end "$(date +%Y-%m)" \
             --allow-stale-cache \
+            --offline-cache \
             --model-portfolio \
             --model-build-date 2026-06-03 \
             --model-invest-ratio 0.75 \
