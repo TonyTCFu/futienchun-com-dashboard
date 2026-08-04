@@ -1,0 +1,4 @@
+﻿trade_id,trade_date,symbol,name,action,shares,trade_price,gross_amount,fee,tax,net_amount,realized_cost,realized_pnl,remaining_shares,reason,status
+paper-20260804-006208-sell-01-5cfbc3a6bb,2026-08-04,006208,富邦台50,sell,4,230.1500,920.60,1.00,1.00,918.60,998.22,-79.62,11,价格跌破建仓成本约 6%，或跌破 60 日趋势且持仓转弱，并已连续观察至少 2 天，建议先减码 25%。,executed
+paper-20260804-00881-sell-01-ae64965a66,2026-08-04,00881,國泰台灣5G+,sell,12,50.9000,610.80,1.00,1.00,608.80,676.56,-67.76,33,模拟盘连续收盘亏损超过约 6%，已连续观察至少 2 天，建议先减码 25%。,executed
+paper-20260804-2303-sell-01-918d594ebd,2026-08-04,2303,聯電,sell,7,118.5000,829.50,1.00,2.00,826.50,946.36,-119.86,19,模拟盘连续收盘亏损超过约 6%，已连续观察至少 2 天，建议先减码 25%。,executed
