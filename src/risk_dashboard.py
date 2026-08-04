@@ -282,7 +282,7 @@ def parse_args() -> argparse.Namespace:
         "--market-source",
         choices=("file", "shioaji", "public-close"),
         default="file",
-        help="模型盘市值来源。file 读取既有 CSV；shioaji 读取盘中快照；public-close 用最新公开收盘价重建。",
+        help="模型盘市值来源。file 读取既有 CSV；shioaji 按 market-mode 读取 snapshot 或日 K 线收盘；public-close 用最新公开收盘价重建。",
     )
     parser.add_argument(
         "--data-source",
@@ -2937,19 +2937,30 @@ def update_daily_market_values(
         logged_in = True
         symbols = [symbol for symbol in execution_orders if symbol in name_by_symbol]
         contracts = [api.Contracts.Stocks[symbol] for symbol in symbols]
-        snapshots = api.snapshots(contracts) if contracts else []
+        snapshots = api.snapshots(contracts) if contracts and market_mode != "close" else []
         snapshot_by_symbol = {str(snapshot_field(snapshot, "code", "")): snapshot for snapshot in snapshots}
         for symbol in symbols:
             order = execution_orders[symbol]
             shares = int(order.get("shares") or 0)
             entry_price = float(order.get("buy_reference_price") or 0)
             entry_cost = float(order.get("total_buy_cost") or entry_price * shares)
-            snapshot = snapshot_by_symbol.get(symbol)
-            price, price_source = snapshot_price(snapshot or {})
-            quote_time = str(snapshot_field(snapshot or {}, "datetime", "") or run_quote_time)
-            total_volume = snapshot_field(snapshot or {}, "total_volume", "")
-            total_amount = snapshot_field(snapshot or {}, "total_amount", "")
-            volume = snapshot_field(snapshot or {}, "volume", "")
+            if market_mode == "close":
+                contract = api.Contracts.Stocks[symbol]
+                daily_bars = fetch_shioaji_daily_close(api, contract, market_date, market_date)
+                bar = daily_bars.get(market_date)
+                price = bar.close if bar else None
+                price_source = "shioaji_kbars_close" if bar else "missing"
+                quote_time = market_date if bar else run_quote_time
+                volume = bar.volume if bar else ""
+                total_volume = volume
+                total_amount = bar.amount if bar else ""
+            else:
+                snapshot = snapshot_by_symbol.get(symbol)
+                price, price_source = snapshot_price(snapshot or {})
+                quote_time = str(snapshot_field(snapshot or {}, "datetime", "") or run_quote_time)
+                total_volume = snapshot_field(snapshot or {}, "total_volume", "")
+                total_amount = snapshot_field(snapshot or {}, "total_amount", "")
+                volume = snapshot_field(snapshot or {}, "volume", "")
             quote_status = "ready" if price is not None else "missing"
             if quote_time:
                 quote_times.append(quote_time)
@@ -3024,6 +3035,7 @@ def update_daily_market_values(
             [
                 f"market_date={market_date}",
                 f"market_mode={market_mode}",
+                "market_source=shioaji",
                 f"quote_time={max(quote_times) if quote_times else ''}",
                 f"total_cost={total_cost:.2f}",
                 f"current_market_value={total_market_value:.2f}",
@@ -4904,7 +4916,7 @@ def main() -> None:
                 issues.append(
                     DataIssue(
                         "DAILY_MARKET",
-                        f"已更新每日行情：{display_path(updated_market.path)}，模式 {updated_market.market_mode}，成功 {updated_market.quote_count} 檔，缺失 {updated_market.missing_count} 檔。",
+                        f"已用 Shioaji 只读行情更新每日行情：{display_path(updated_market.path)}，模式 {updated_market.market_mode}，成功 {updated_market.quote_count} 檔，缺失 {updated_market.missing_count} 檔。",
                     )
                 )
             elif args.market_source == "public-close":
