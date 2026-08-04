@@ -104,6 +104,68 @@ jobs:
           print(f"is_current={'true' if all(fragment in html for fragment in required) else 'false'}")
           PY
 
+      - name: Check public close data
+        id: public-close
+        if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current != 'true'
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          from __future__ import annotations
+
+          import json
+          import os
+          import urllib.request
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+
+          today = datetime.now(ZoneInfo("Asia/Taipei")).date()
+          target = f"{today.year - 1911}/{today.month:02d}/{today.day:02d}"
+          symbols = ("2330", "2317", "2454", "6505", "2881")
+          latest_dates: dict[str, str] = {}
+          missing: list[str] = []
+          errors: list[str] = []
+
+          for symbol in symbols:
+              url = (
+                  "https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY"
+                  f"?response=json&date={today.strftime('%Y%m%d')}&stockNo={symbol}"
+              )
+              try:
+                  with urllib.request.urlopen(url, timeout=30) as response:
+                      payload = json.load(response)
+                  rows = payload.get("data") or []
+                  dates = [str(row[0]) for row in rows if row]
+                  latest_dates[symbol] = max(dates) if dates else "none"
+                  if payload.get("stat") != "OK" or target not in dates:
+                      missing.append(f"{symbol}:{latest_dates[symbol]}")
+              except Exception as exc:
+                  latest_dates[symbol] = "error"
+                  errors.append(f"{symbol}:{type(exc).__name__}")
+                  missing.append(f"{symbol}:error")
+
+          ready = not missing and not errors
+          print(f"is_ready={'true' if ready else 'false'}")
+          print("latest_dates=" + ",".join(f"{symbol}:{latest_dates[symbol]}" for symbol in symbols))
+
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write("## Taiwan Dashboard public close gate\n")
+              summary.write(f"- Target date: {today.isoformat()}\n")
+              summary.write(f"- Status: {'ready' if ready else 'waiting for TWSE public data'}\n")
+              summary.write("- Latest target symbols: " + ", ".join(f"{symbol}={latest_dates[symbol]}" for symbol in symbols) + "\n")
+              if missing:
+                  summary.write("- Missing target symbols: " + ", ".join(missing) + "\n")
+              if errors:
+                  summary.write("- Request errors: " + ", ".join(errors) + "\n")
+          PY
+
+      - name: Skip until public close data is ready
+        if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current != 'true' && steps.public-close.outputs.is_ready != 'true'
+        run: |
+          {
+            echo "## Taiwan Dashboard Daily Close waiting"
+            echo "- Reason: required TWSE public STOCK_DAY data is not available for the target date."
+            echo "- No dashboard rebuild, CSV write, simulated trade, commit, or push was performed."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Skip duplicate daily close
         if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current == 'true'
         run: |
@@ -114,7 +176,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Compile scripts
-        if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current != 'true'
+        if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current != 'true' && steps.public-close.outputs.is_ready == 'true'
         run: |
           python -m py_compile \
             src/risk_dashboard.py \
@@ -124,7 +186,7 @@ jobs:
 
       - name: Rebuild dashboard
         id: rebuild-dashboard
-        if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current != 'true'
+        if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current != 'true' && steps.public-close.outputs.is_ready == 'true'
         run: |
           python src/risk_dashboard.py \
             --start 2024-01 \
@@ -141,7 +203,7 @@ jobs:
 
       - name: Verify generated dashboard
         id: verify-generated-dashboard
-        if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current != 'true'
+        if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current != 'true' && steps.public-close.outputs.is_ready == 'true'
         run: |
           python - <<'PY'
           from __future__ import annotations
@@ -169,7 +231,7 @@ jobs:
           PY
 
       - name: Commit generated dashboard
-        if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current != 'true'
+        if: steps.trading-day.outputs.is_open == 'true' && steps.current-dashboard.outputs.is_current != 'true' && steps.public-close.outputs.is_ready == 'true'
         run: |
           if git diff --quiet -- dashboard data scripts; then
             echo "No dashboard changes to commit."

@@ -482,10 +482,19 @@ def fetch_month(symbol: str, month: str, cache_dir: Path, allow_stale_cache: boo
     cache_dir.mkdir(parents=True, exist_ok=True)
     cache_path = cache_dir / f"{symbol}_{month}.json"
 
-    if offline_cache:
-        if cache_path.exists():
+    def read_cached_prices() -> dict[str, MarketBar] | None:
+        if not cache_path.exists():
+            return None
+        try:
             payload = json.loads(cache_path.read_text(encoding="utf-8"))
-            return parse_twse_rows(payload, symbol), f"{symbol} {month} 使用离线缓存"
+            return parse_twse_rows(payload, symbol)
+        except (OSError, ValueError, json.JSONDecodeError):
+            return None
+
+    if offline_cache:
+        cached_prices = read_cached_prices()
+        if cached_prices:
+            return cached_prices, f"{symbol} {month} 使用离线缓存"
         return None, f"{symbol} {month} 无离线缓存"
 
     try:
@@ -497,23 +506,26 @@ def fetch_month(symbol: str, month: str, cache_dir: Path, allow_stale_cache: boo
         if payload.get("stat") not in {"OK", "很抱歉，沒有符合條件的資料!"}:
             raise ValueError(str(payload.get("stat")))
         if payload.get("stat") != "OK":
-            if allow_stale_cache and cache_path.exists():
-                cached_payload = json.loads(cache_path.read_text(encoding="utf-8"))
-                return parse_twse_rows(cached_payload, symbol), f"{symbol} {month} 使用缓存：无新公开资料"
-            cache_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+            cached_prices = read_cached_prices() if allow_stale_cache else None
+            if cached_prices:
+                return cached_prices, f"{symbol} {month} 使用缓存：无新公开资料"
+            # Do not persist a no-data TWSE response as if it were market data.
             return None, f"{symbol} {month} 无资料"
         cache_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
         return parse_twse_rows(payload, symbol), None
     except Exception as exc:
-        if cache_path.exists():
-            payload = json.loads(cache_path.read_text(encoding="utf-8"))
-            return parse_twse_rows(payload, symbol), f"{symbol} {month} 使用缓存：{exc}"
+        cached_prices = read_cached_prices()
+        if cached_prices:
+            return cached_prices, f"{symbol} {month} 使用缓存：{exc}"
         if allow_stale_cache:
             merged: dict[str, MarketBar] = {}
             stale_files = sorted(cache_dir.glob(f"{symbol}_*.json"))
             for path in stale_files:
-                payload = json.loads(path.read_text(encoding="utf-8"))
-                merged.update(parse_twse_rows(payload, symbol))
+                try:
+                    payload = json.loads(path.read_text(encoding="utf-8"))
+                    merged.update(parse_twse_rows(payload, symbol))
+                except (OSError, ValueError, json.JSONDecodeError):
+                    continue
             if merged:
                 return merged, f"{symbol} 使用旧缓存：{exc}"
         return None, f"{symbol} {month} 下载失败：{exc}"
