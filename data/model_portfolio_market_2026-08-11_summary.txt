@@ -1,0 +1,10 @@
+market_date=2026-08-11
+market_mode=close
+market_source=shioaji
+quote_time=2026-08-11
+total_cost=141792.56
+current_market_value=142918.16
+unrealized_pnl=1125.60
+unrealized_pnl_pct=0.007938
+quote_count=13
+missing_count=0
