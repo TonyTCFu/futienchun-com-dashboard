@@ -8,11 +8,17 @@ import os
 import ssl
 import urllib.request
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 
 BASE_DATA_URL = "https://raw.githubusercontent.com/TonyTCFu/taiwan-stock-analysis/main/data/stock_data.json"
 BASE_DATA_PATH = Path(__file__).resolve().parents[1] / "data" / "stock_data.json"
 STOCK_CODES = ("2330", "2059", "2383", "3017", "2317")
+TAIPEI_TIMEZONE = ZoneInfo("Asia/Taipei")
+
+
+def _now():
+    return dt.datetime.now(TAIPEI_TIMEZONE)
 
 
 def _float(value, default=0.0):
@@ -55,7 +61,7 @@ def _fetch_twse_mis():
     return rows, {
         "status": "ok",
         "quote_count": len(rows),
-        "retrieved_at": dt.datetime.now().isoformat(timespec="seconds"),
+        "retrieved_at": _now().isoformat(timespec="seconds"),
         "market_time": max(times) if times else None,
     }
 
@@ -80,7 +86,7 @@ def _fetch_shioaji():
         return by_code, {
             "status": "ok" if by_code else "unavailable",
             "quote_count": len(by_code),
-            "retrieved_at": dt.datetime.now().isoformat(timespec="seconds"),
+            "retrieved_at": _now().isoformat(timespec="seconds"),
             "quote_mode": "snapshot",
         }
     except Exception as exc:
@@ -146,7 +152,7 @@ def fetch_live_quotes():
     else:
         data_source = "TWSE MIS fallback (Shioaji unavailable)"
     payload.update({
-        "updated_at": dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "updated_at": _now().strftime("%Y-%m-%d %H:%M:%S"),
         "data_source": data_source,
         "sources": {
             "shioaji": shioaji_status,
