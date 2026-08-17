@@ -12,3 +12,11 @@ services:
         value: "13:45"
       - key: DASHBOARD_REBUILD_COMMAND
         value: python src/risk_dashboard.py --start 2024-01 --offline-cache --allow-stale-cache --model-portfolio --model-build-date 2026-06-03 --model-invest-ratio 0.75 --model-method multi-factor-shrink --ai-tilt moderate --market-source public-close --market-mode close --execute-simulated-trades
+      - key: SHIOAJI_API_KEY
+        sync: false
+      - key: SHIOAJI_SECRET_KEY
+        sync: false
+      - key: LIVE_REFRESH_ORIGINS
+        value: https://tonytcfu.github.io,https://futienchun-com-dashboard.onrender.com
+      - key: LIVE_REFRESH_COOLDOWN_SECONDS
+        value: "30"

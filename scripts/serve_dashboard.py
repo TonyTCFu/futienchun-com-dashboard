@@ -17,6 +17,8 @@ from pathlib import Path
 from typing import ClassVar
 from urllib.parse import urlparse
 
+from live_quotes import fetch_live_quotes
+
 try:
     from zoneinfo import ZoneInfo
 except Exception:  # pragma: no cover - zoneinfo is expected on modern Python
@@ -30,6 +32,17 @@ DEFAULT_USERNAME = "dashboard"
 DEFAULT_INDEX = ROOT / "dashboard" / "index.html"
 DEFAULT_REBUILD_TIME = "13:45"
 DEFAULT_REBUILD_TIMEZONE = "Asia/Shanghai"
+LIVE_REFRESH_COOLDOWN_SECONDS = int(os.getenv("LIVE_REFRESH_COOLDOWN_SECONDS", "30"))
+LIVE_REFRESH_ORIGINS = tuple(
+    origin.strip()
+    for origin in os.getenv(
+        "LIVE_REFRESH_ORIGINS",
+        "https://tonytcfu.github.io,https://futienchun-com-dashboard.onrender.com",
+    ).split(",")
+    if origin.strip()
+)
+LIVE_REFRESH_LOCK = threading.Lock()
+LIVE_REFRESH_LAST_STARTED = -LIVE_REFRESH_COOLDOWN_SECONDS
 DEFAULT_REBUILD_COMMAND = [
     sys.executable,
     str(ROOT / "src" / "risk_dashboard.py"),
@@ -99,6 +112,24 @@ class DashboardHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def _send_json(self, status: HTTPStatus, payload: object, origin: str | None = None) -> None:
+        data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        if origin:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
+        self.end_headers()
+        self.wfile.write(data)
+
+    def _live_refresh_origin(self) -> str | None:
+        origin = self.headers.get("Origin", "").strip()
+        if origin and origin not in LIVE_REFRESH_ORIGINS:
+            self._send_json(HTTPStatus.FORBIDDEN, {"error": "origin_not_allowed"})
+            return None
+        return origin or None
+
     def _require_auth(self) -> bool:
         if not self.auth_password:
             return True
@@ -135,6 +166,58 @@ class DashboardHandler(SimpleHTTPRequestHandler):
         if path == "/version.json":
             return self._send_dashboard_version()
         return super().do_GET()
+
+    def do_OPTIONS(self) -> None:  # noqa: N802
+        if urlparse(self.path).path != "/api/live-quotes":
+            self.send_error(HTTPStatus.NOT_FOUND)
+            return
+        origin = self._live_refresh_origin()
+        if self.headers.get("Origin", "").strip() and origin is None:
+            return
+        self.send_response(HTTPStatus.NO_CONTENT)
+        if origin:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.send_header("Vary", "Origin")
+        self.end_headers()
+
+    def do_POST(self) -> None:  # noqa: N802
+        if urlparse(self.path).path != "/api/live-quotes":
+            self.send_error(HTTPStatus.NOT_FOUND)
+            return
+        origin = self._live_refresh_origin()
+        if self.headers.get("Origin", "").strip() and origin is None:
+            return
+
+        global LIVE_REFRESH_LAST_STARTED
+        now = time.monotonic()
+        with LIVE_REFRESH_LOCK:
+            elapsed = now - LIVE_REFRESH_LAST_STARTED
+            if elapsed < LIVE_REFRESH_COOLDOWN_SECONDS:
+                retry_after = max(1, int(LIVE_REFRESH_COOLDOWN_SECONDS - elapsed))
+                self.send_response(HTTPStatus.TOO_MANY_REQUESTS)
+                self.send_header("Retry-After", str(retry_after))
+                if origin:
+                    self.send_header("Access-Control-Allow-Origin", origin)
+                    self.send_header("Vary", "Origin")
+                self.end_headers()
+                return
+            LIVE_REFRESH_LAST_STARTED = now
+
+            try:
+                payload = fetch_live_quotes()
+            except Exception as exc:
+                self._send_json(
+                    HTTPStatus.SERVICE_UNAVAILABLE,
+                    {
+                        "error": f"{type(exc).__name__}: {exc}",
+                        "message": "No fresh quote was returned; the published dashboard data was not changed.",
+                    },
+                    origin,
+                )
+                return
+            self._send_json(HTTPStatus.OK, payload, origin)
 
     def do_HEAD(self) -> None:  # noqa: N802
         if not self._require_auth():
