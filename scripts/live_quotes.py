@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import os
+import ssl
 import urllib.request
 from pathlib import Path
 
@@ -32,11 +33,20 @@ def _int(value, default=0):
         return default
 
 
+def _twse_ssl_context():
+    """Keep certificate validation while accepting TWSE's legacy certificate metadata."""
+    context = ssl.create_default_context()
+    strict_flag = getattr(ssl, "VERIFY_X509_STRICT", 0)
+    if strict_flag:
+        context.verify_flags &= ~strict_flag
+    return context
+
+
 def _fetch_twse_mis():
     query = "|".join(f"tse_{code}.tw" for code in STOCK_CODES)
     url = f"https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch={query}"
     request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(request, timeout=8) as response:
+    with urllib.request.urlopen(request, timeout=8, context=_twse_ssl_context()) as response:
         payload = json.loads(response.read().decode("utf-8"))
     rows = {item.get("c"): item for item in payload.get("msgArray", []) if item.get("c")}
     if not rows:
