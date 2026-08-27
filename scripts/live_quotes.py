@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 
 BASE_DATA_URL = "https://raw.githubusercontent.com/TonyTCFu/taiwan-stock-analysis/main/data/stock_data.json"
 BASE_DATA_PATH = Path(__file__).resolve().parents[1] / "data" / "stock_data.json"
-STOCK_CODES = ("2330", "2059", "2383", "3017", "2317")
+STOCK_CODES = ("2330", "2059", "2383", "3017", "2317", "2308", "2345", "2360", "3711", "2454")
 TAIPEI_TIMEZONE = ZoneInfo("Asia/Taipei")
 
 
@@ -99,11 +99,27 @@ def _fetch_shioaji():
 
 
 def _base_payload():
+    def load_remote():
+        request = urllib.request.Request(BASE_DATA_URL, headers={"User-Agent": "TaiwanStockDashboard/1.0"})
+        with urllib.request.urlopen(request, timeout=10) as response:
+            return response.read().decode("utf-8")
+
+    loaders = [load_remote]
     if BASE_DATA_PATH.exists():
-        return json.loads(BASE_DATA_PATH.read_text(encoding="utf-8"))
-    request = urllib.request.Request(BASE_DATA_URL, headers={"User-Agent": "TaiwanStockDashboard/1.0"})
-    with urllib.request.urlopen(request, timeout=10) as response:
-        return json.loads(response.read().decode("utf-8"))
+        loaders.append(lambda: BASE_DATA_PATH.read_text(encoding="utf-8"))
+
+    expected = set(STOCK_CODES)
+    errors = []
+    for load in loaders:
+        try:
+            payload = json.loads(load())
+            available = {str(stock.get("code", "")) for stock in payload.get("stocks", [])}
+            if expected.issubset(available):
+                return payload
+            errors.append(f"base payload has {len(available & expected)}/{len(expected)} expected stocks")
+        except Exception as exc:
+            errors.append(f"{type(exc).__name__}: {exc}")
+    raise RuntimeError("Published dashboard data is incomplete; " + "; ".join(errors))
 
 
 def fetch_live_quotes():
@@ -119,6 +135,9 @@ def fetch_live_quotes():
         raise RuntimeError("Neither Shioaji nor TWSE MIS returned quotes")
 
     payload = _base_payload()
+    payload_codes = {str(stock.get("code", "")) for stock in payload.get("stocks", [])}
+    if not set(STOCK_CODES).issubset(payload_codes):
+        raise RuntimeError(f"Dashboard base data must contain {len(STOCK_CODES)} stocks")
     for stock in payload.get("stocks", []):
         code = str(stock.get("code", ""))
         snapshot = shioaji_data.get(code)
