@@ -1,0 +1,2 @@
+﻿trade_id,trade_date,symbol,name,action,shares,trade_price,gross_amount,fee,tax,net_amount,realized_cost,realized_pnl,remaining_shares,reason,status
+paper-20260902-2412-sell-01-932099ce33,2026-09-02,2412,中華電,sell,1,137.5000,137.50,0.00,0.00,137.50,143.21,-5.71,1,价格跌破建仓成本约 6%，或跌破 60 日趋势且持仓转弱，并已连续观察至少 2 天，建议先减码 25%。,executed
