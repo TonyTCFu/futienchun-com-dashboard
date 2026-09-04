@@ -29,7 +29,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 8000
 DEFAULT_USERNAME = "dashboard"
-DEFAULT_INDEX = ROOT / "dashboard" / "index.html"
+DEFAULT_INDEX = ROOT / "dashboard" / "gateway.html"
+PAPER_DASHBOARD_INDEX = ROOT / "dashboard" / "index.html"
 DEFAULT_REBUILD_TIME = "13:45"
 DEFAULT_REBUILD_TIMEZONE = "Asia/Shanghai"
 LIVE_REFRESH_COOLDOWN_SECONDS = int(os.getenv("LIVE_REFRESH_COOLDOWN_SECONDS", "30"))
@@ -87,7 +88,7 @@ class DashboardHandler(SimpleHTTPRequestHandler):
 
     @staticmethod
     def _dashboard_version() -> dict[str, str | int]:
-        content = DEFAULT_INDEX.read_bytes()
+        content = (PAPER_DASHBOARD_INDEX if PAPER_DASHBOARD_INDEX.exists() else DEFAULT_INDEX).read_bytes()
         digest = hashlib.sha256(content).hexdigest()
         modified_at = datetime.fromtimestamp(DEFAULT_INDEX.stat().st_mtime).astimezone().isoformat(timespec="seconds")
         return {
@@ -156,9 +157,26 @@ class DashboardHandler(SimpleHTTPRequestHandler):
         self.wfile.write(b"Authentication required.\n")
 
     def do_GET(self) -> None:  # noqa: N802
+        path = urlparse(self.path).path
+        if path == "/api/live-quotes":
+            origin = self._live_refresh_origin()
+            if self.headers.get("Origin", "").strip() and origin is None:
+                return
+            # Browser GET should not 404; force-refresh still uses POST.
+            return self._send_json(
+                HTTPStatus.OK,
+                {
+                    "ok": True,
+                    "endpoint": "/api/live-quotes",
+                    "methods": ["POST"],
+                    "message": "Use POST for live quotes (GitHub Pages force-refresh). GET is a probe only.",
+                    "frontend": "https://tonytcfu.github.io/taiwan-stock-analysis/",
+                    "healthz": "/healthz",
+                },
+                origin,
+            )
         if not self._require_auth():
             return
-        path = urlparse(self.path).path
         if path == "/":
             return self._serve_index()
         if path == "/healthz":
@@ -177,7 +195,7 @@ class DashboardHandler(SimpleHTTPRequestHandler):
         self.send_response(HTTPStatus.NO_CONTENT)
         if origin:
             self.send_header("Access-Control-Allow-Origin", origin)
-            self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
             self.send_header("Access-Control-Allow-Headers", "Content-Type")
             self.send_header("Vary", "Origin")
         self.end_headers()
