@@ -1,0 +1,2 @@
+﻿trade_id,trade_date,symbol,name,action,shares,trade_price,gross_amount,fee,tax,net_amount,realized_cost,realized_pnl,remaining_shares,reason,status
+paper-20260904-2881-sell-01-470d668df0,2026-09-04,2881,富邦金,sell,12,150.5000,1806.00,3.00,5.00,1798.00,1369.98,428.02,48,持仓获利超过约 8% 且 RSI 偏热，并已连续观察至少 2 天，建议分批获利了结 20%。,executed
