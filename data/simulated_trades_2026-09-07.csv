@@ -1,0 +1,4 @@
+﻿trade_id,trade_date,symbol,name,action,shares,trade_price,gross_amount,fee,tax,net_amount,realized_cost,realized_pnl,remaining_shares,reason,status
+paper-20260907-00919-sell-01-9b103c64ac,2026-09-07,00919,群益台灣精選高息,sell,112,32.9100,3685.92,5.00,5.00,3675.92,3414.03,261.89,444,持仓获利超过约 8% 且 RSI 偏热，并已连续观察至少 2 天，建议分批获利了结 20%。,executed
+paper-20260907-2881-sell-01-09f2c2f2a6,2026-09-07,2881,富邦金,sell,10,149.5000,1495.00,2.00,4.00,1489.00,1141.65,347.35,38,持仓获利超过约 8% 且 RSI 偏热，并已连续观察至少 2 天，建议分批获利了结 20%。,executed
+paper-20260907-2882-sell-01-7023b9a549,2026-09-07,2882,國泰金,sell,20,114.5000,2290.00,3.00,7.00,2280.00,1832.62,447.38,79,持仓获利超过约 8% 且 RSI 偏热，并已连续观察至少 2 天，建议分批获利了结 20%。,executed
