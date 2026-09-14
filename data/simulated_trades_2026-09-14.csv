@@ -1,0 +1,3 @@
+﻿trade_id,trade_date,symbol,name,action,shares,trade_price,gross_amount,fee,tax,net_amount,realized_cost,realized_pnl,remaining_shares,reason,status
+paper-20260914-2881-sell-01-e6641c7ce0,2026-09-14,2881,富邦金,sell,3,154.0000,462.00,1.00,1.00,460.00,342.49,117.51,12,持仓获利超过约 8% 且 RSI 偏热，并已连续观察至少 2 天，建议分批获利了结 20%。,executed
+paper-20260914-2882-sell-01-7b9aeca42b,2026-09-14,2882,國泰金,sell,10,112.5000,1125.00,2.00,3.00,1120.00,916.31,203.69,40,持仓获利超过约 8% 且 RSI 偏热，并已连续观察至少 2 天，建议分批获利了结 20%。,executed
