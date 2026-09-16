@@ -15,7 +15,7 @@ BASE_DATA_URL = "https://raw.githubusercontent.com/TonyTCFu/taiwan-stock-analysi
 BASE_DATA_PATH = Path(__file__).resolve().parents[1] / "data" / "stock_data.json"
 STOCK_CODES = ("2330", "2059", "2383", "3017", "2317", "2308", "2345", "2360", "3711", "2454")
 TAIPEI_TIMEZONE = ZoneInfo("Asia/Taipei")
-CACHE_VERSION = "20260916-quote-sync-r2"
+CACHE_VERSION = "20260916-quote-flow-sync-r3"
 
 
 def _now():
