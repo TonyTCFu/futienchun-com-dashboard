@@ -15,10 +15,21 @@ BASE_DATA_URL = "https://raw.githubusercontent.com/TonyTCFu/taiwan-stock-analysi
 BASE_DATA_PATH = Path(__file__).resolve().parents[1] / "data" / "stock_data.json"
 STOCK_CODES = ("2330", "2059", "2383", "3017", "2317", "2308", "2345", "2360", "3711", "2454")
 TAIPEI_TIMEZONE = ZoneInfo("Asia/Taipei")
+CACHE_VERSION = "20260916-quote-sync-r2"
 
 
 def _now():
     return dt.datetime.now(TAIPEI_TIMEZONE)
+
+
+def _latest_market_date(now: dt.datetime) -> str:
+    """Use the most recent expected Taiwan trading day outside market hours."""
+    market_day = now.date()
+    if now.hour < 9:
+        market_day -= dt.timedelta(days=1)
+    while market_day.weekday() >= 5:
+        market_day -= dt.timedelta(days=1)
+    return market_day.isoformat()
 
 
 def _float(value, default=0.0):
@@ -138,13 +149,19 @@ def fetch_live_quotes():
     payload_codes = {str(stock.get("code", "")) for stock in payload.get("stocks", [])}
     if not set(STOCK_CODES).issubset(payload_codes):
         raise RuntimeError(f"Dashboard base data must contain {len(STOCK_CODES)} stocks")
+    quote_updated_at = _now()
+    fresh_quote_codes = set()
     for stock in payload.get("stocks", []):
         code = str(stock.get("code", ""))
+        if code not in STOCK_CODES:
+            continue
         snapshot = shioaji_data.get(code)
         mis = twse_data.get(code, {})
         shioaji_last = _float(getattr(snapshot, "close", None)) if snapshot else 0.0
         quote_source = "Shioaji Snapshot" if shioaji_last else "TWSE MIS"
         last_price = shioaji_last or _float(mis.get("z"))
+        if not last_price:
+            continue
         prev_close = (_float(getattr(snapshot, "yesterday_close", None)) if snapshot else 0.0) or _float(mis.get("y")) or last_price
         open_price = (_float(getattr(snapshot, "open", None)) if snapshot else 0.0) or _float(mis.get("o")) or last_price
         high_price = (_float(getattr(snapshot, "high", None)) if snapshot else 0.0) or _float(mis.get("h")) or last_price
@@ -163,6 +180,14 @@ def fetch_live_quotes():
             "quote_source": quote_source,
             "quote_time": mis.get("t") if quote_source == "TWSE MIS" else shioaji_status.get("retrieved_at"),
         })
+        fresh_quote_codes.add(code)
+
+    missing_quote_codes = sorted(set(STOCK_CODES) - fresh_quote_codes)
+    if missing_quote_codes:
+        raise RuntimeError(
+            "Live quote response is incomplete; missing valid prices for "
+            + ", ".join(missing_quote_codes)
+        )
 
     if shioaji_data and twse_data:
         data_source = "Shioaji Snapshot (primary) + TWSE MIS cross-check"
@@ -170,8 +195,20 @@ def fetch_live_quotes():
         data_source = "Shioaji Snapshot"
     else:
         data_source = "TWSE MIS fallback (Shioaji unavailable)"
+    quote_updated_at_text = quote_updated_at.strftime("%Y-%m-%d %H:%M:%S")
+    market_as_of = _latest_market_date(quote_updated_at)
     payload.update({
-        "updated_at": _now().strftime("%Y-%m-%d %H:%M:%S"),
+        "updated_at": quote_updated_at_text,
+        "quote_updated_at": quote_updated_at_text,
+        "market_as_of": market_as_of,
+        "quote_status": {
+            "status": "ok",
+            "updated_at": quote_updated_at_text,
+            "as_of": market_as_of,
+            "quote_count": len(fresh_quote_codes),
+            "source": data_source,
+        },
+        "cache_version": CACHE_VERSION,
         "data_source": data_source,
         "sources": {
             "shioaji": shioaji_status,

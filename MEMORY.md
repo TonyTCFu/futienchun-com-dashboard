@@ -11,6 +11,7 @@ This file preserves durable project context for the Taiwan equity risk dashboard
 - The system uses public close data by default. Shioaji is an optional read-only market-data source; no real order, modification, cancellation, or account-trading operation is permitted.
 - Daily close updates use `multi-factor-shrink`, `ai_tilt moderate`, `market-source public-close`, `market-mode close`, and `--execute-simulated-trades` for the local paper portfolio only.
 - Public delivery is a separate deployment path from the shared Workspace `origin`. A release is complete only after the public Dashboard body and cache version are verified.
+- The public live-quote gateway must return success only after all 10 tracked stocks have valid prices. Its response must advance `quote_updated_at`, `market_as_of`, `quote_status`, and the cache version together; a partial response must leave the last published quote layer intact.
 
 ## Operations
 
