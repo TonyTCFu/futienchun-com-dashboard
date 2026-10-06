@@ -1,0 +1,2 @@
+﻿trade_id,trade_date,symbol,name,action,shares,trade_price,gross_amount,fee,tax,net_amount,realized_cost,realized_pnl,remaining_shares,reason,status
+paper-20261006-0056-sell-01-8dba7c26c5,2026-10-06,0056,元大高股息,sell,31,58.1000,1801.10,3.00,3.00,1795.10,1642.46,152.64,123,持仓获利超过约 8% 且 RSI 偏热，并已连续观察至少 2 天，建议分批获利了结 20%。,executed
