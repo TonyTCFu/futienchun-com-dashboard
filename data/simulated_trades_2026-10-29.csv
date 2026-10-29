@@ -1,0 +1,2 @@
+﻿trade_id,trade_date,symbol,name,action,shares,trade_price,gross_amount,fee,tax,net_amount,realized_cost,realized_pnl,remaining_shares,reason,status
+paper-20261029-00713-sell-01-69f7ceecf2,2026-10-29,00713,元大台灣高息低波,sell,14,65.9500,923.30,1.00,1.00,921.30,837.71,83.59,53,持仓获利超过约 8% 且 RSI 偏热，并已连续观察至少 2 天，建议分批获利了结 20%。,executed
