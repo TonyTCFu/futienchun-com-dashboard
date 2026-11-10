@@ -1,0 +1,3 @@
+﻿trade_id,trade_date,symbol,name,action,shares,trade_price,gross_amount,fee,tax,net_amount,realized_cost,realized_pnl,remaining_shares,reason,status
+paper-20261110-0050-sell-01-c510239f78,2026-11-10,0050,元大台灣50,sell,4,99.7000,398.80,1.00,0.00,397.80,431.00,-33.20,11,模拟盘连续收盘亏损超过约 6%，已连续观察至少 2 天，建议先减码 25%。,executed
+paper-20261110-2330-sell-01-a4060b3c83,2026-11-10,2330,台積電,sell,1,2285.0000,2285.00,3.00,7.00,2275.00,2425.40,-150.40,2,价格跌破建仓成本约 6%，或跌破 60 日趋势且持仓转弱，并已连续观察至少 2 天，建议先减码 25%。,executed
