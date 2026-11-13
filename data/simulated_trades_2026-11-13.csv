@@ -1,0 +1,2 @@
+﻿trade_id,trade_date,symbol,name,action,shares,trade_price,gross_amount,fee,tax,net_amount,realized_cost,realized_pnl,remaining_shares,reason,status
+paper-20261113-0050-sell-01-e19854b27f,2026-11-13,0050,元大台灣50,sell,2,102.5000,205.00,0.00,0.00,205.00,215.50,-10.50,6,价格跌破建仓成本约 6%，或跌破 60 日趋势且持仓转弱，并已连续观察至少 2 天，建议先减码 25%。,executed
